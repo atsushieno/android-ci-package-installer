@@ -1,0 +1,119 @@
+package dev.atsushieno.cipackageinstaller
+
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.core.content.FileProvider
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
+
+abstract class ApplicationStore(val referrer: String) {
+    abstract val repositories: List<RepositoryInformation>
+    abstract fun initialize(context: Context)
+}
+
+data class GitHubCredentials(val username: String, val pat: String)
+
+object AppModel {
+    val FILE_APK_PROVIDER_AUTHORITY = "dev.atsushieno.cipackageinstaller.fileprovider"
+    const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/CIApkInstaller"
+
+    fun createSharedPreferences(context: Context) : SharedPreferences {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        return EncryptedSharedPreferences.create(context, "AndroidCIPackageInstaller", masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
+    }
+
+    fun getGitHubCredentials(context: Context) : GitHubCredentials {
+        val sp = createSharedPreferences(context)
+        val user = sp.getString("GITHUB_USER", "") ?: ""
+        val pat = sp.getString("GITHUB_PAT", "") ?: ""
+        return GitHubCredentials(user, pat)
+    }
+
+    fun setGitHubCredentials(context: Context, username: String, pat: String) {
+        val sp = createSharedPreferences(context)
+        val edit = sp.edit()
+        edit.putString("GITHUB_USER", username)
+        edit.putString("GITHUB_PAT", pat)
+        edit.apply()
+
+        githubApplicationStore.updateCredentials(username, pat)
+    }
+
+    fun copyStream(inFS: InputStream, outFile: File) {
+        val outFS = FileOutputStream(outFile)
+        copyStream(inFS, outFS)
+        outFS.close()
+    }
+
+    private fun copyStream(inFS: InputStream, outFS: OutputStream) {
+        val bytes = ByteArray(4096)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            inFS.transferTo(outFS)
+        } else {
+            while (inFS.available() > 0) {
+                val size = inFS.read(bytes)
+                outFS.write(bytes, 0, size)
+            }
+        }
+    }
+
+    fun performInstallPackage(context: Context, repo: Repository) {
+        /*
+        val installer = context.packageManager.packageInstaller
+        val existing = installer.allSessions.firstOrNull { it.appPackageName == repo.info.packageName && it.isActive }
+        if (existing != null)
+            throw CIPackageInstallerException("Another operation for the package '${repo.info.packageName}' is in progress. Please wait for its completion.")
+        val params = repo.toPackageInstallerSessionParams()
+        val session = installer.openSession(installer.createSession(params))
+
+        val file = repo.downloadApp()
+        val outStream = session.openWrite(file.name, 0, file.length())
+        val inStream = FileInputStream(file)
+        copyStream(inStream, outStream)
+        session.fsync(outStream)
+        outStream.close()
+
+        val intent = Intent(context, MainActivity::class.java)
+        intent.action = CIPackageInstallerActivity.PACKAGE_INSTALLED_ACTION
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_MUTABLE)
+        println("ready to install ${repo.appName} ...")
+        session.commit(pendingIntent.intentSender)
+        println("committed.")
+        */
+        val file = repo.downloadApp()
+        val intent = Intent(Intent.ACTION_INSTALL_PACKAGE)
+        intent.data = FileProvider.getUriForFile(context, FILE_APK_PROVIDER_AUTHORITY, file)
+        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+        intent.putExtra(Intent.EXTRA_RETURN_RESULT, true)
+        intent.putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, context.applicationInfo.packageName)
+
+        (context as Activity).startActivity(intent)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+            val unknownAppSourceIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+            unknownAppSourceIntent.data =
+                Uri.parse(String.format("package:%s", context.packageName))
+            context.startActivity(unknownAppSourceIntent)
+        }
+    }
+
+    private val githubApplicationStore = GitHubRepositoryStore(GITHUB_REPOSITORY_REFERRER)
+    val applicationStore: ApplicationStore = githubApplicationStore
+
+    var findExistingPackages: (Context) -> List<String> = { listOf() }
+}
