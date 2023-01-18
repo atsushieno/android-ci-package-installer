@@ -4,7 +4,15 @@ It is an Android application that lets you install the latest versions of those 
 
 ![AAP-CI-Package-Installer sshot](./docs/images/aap-ci-package-installer.png)
 
-Currently this application only targets AAP (Audio Plugins For Android) projects, but the project is 50% intended to be used more widely than just for AAP. Since we already have 20~ish audio plugin APKs and it's going to grow, it makes more sense to provide easier way to install those plugins.
+Currently this application only targets AAP (Audio Plugins For Android) projects, but the project is 50% intended to be used more widely than just for AAP.
+
+## Rationale
+
+We need something to facilitate testing existing audio plugins to provide easier access to experience the AAP ecosystem. Since already have 20~ish audio plugin APKs and it's going to grow, it makes more sense to provide easier way to install those plugins, rather than going to each project to download an APK and install manually for 20+ repos.
+
+Not [Firebase Testing](https://firebase.google.com/docs/app-distribution/android/distribute-gradle)? It is possible to distribute testing APKs and probably tooling works, but looks like we have to create one app per apk / repo, which is quite annoying to manage. We may use it for individual development, but not for this particular need.
+
+[DeployGate](https://deploygate.com/?locale=en) offers simple and straightforward test app distribution that I love as a user (also it is run by friends), but the free tier offers 2 apps at most where we have 20+ (not sure if aggregated management is doable there either). So not for the individual plugins apps. But we may use it for testing *this* installer app.
 
 ## Limitations
 
