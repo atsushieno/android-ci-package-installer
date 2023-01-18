@@ -1,12 +1,12 @@
-# AAP CI package installer
-
-It is an Android application that lets you install the latest versions of those APKs built and uploaded as CI artifacts.
+# What is this?
 
 ![AAP-CI-Package-Installer sshot](./docs/images/aap-ci-package-installer.png)
 
-Currently this application only targets AAP (Audio Plugins For Android) projects, but the project is 50% intended to be used more widely than just for AAP.
+[AAP (Audio Plugins For Android)](https://github.com/atsushieno/aap-core) is an (experimental) audio plugins framework for Android that comes with [various audio plugins](https://github.com/atsushieno/aap-core/wiki/List-of-AAP-plugins-and-hosts) as Android apps. Since it is annoying to install all those packages to a new device or emulator (for development) one by one using Android Studio, we want to have a simpler plugin "installer" application. **AAP APK Installer** is created for this purpose. It is like [Native Instrument's Native Access](https://www.native-instruments.com/en/specials/native-access-2/), but so far for development build artifacts (we have no "release builds" yet).
 
-## Rationale
+Since all what it does is to download the target APKs or AABs from our dedicated list and install them, the core functionality could be generalized to support *any* set of GitHub repositories that provide APKs or AABs by anyone. Therefore, a generalized **Android CI Package Installer** is split to an independent AAR so that anyone can reuse this installer utility.
+
+## More on Rationale
 
 We need something to facilitate testing existing audio plugins to provide easier access to experience the AAP ecosystem. Or, we sometimes need to demonstrate or "show off" what the current state of union is like, often on a dedicated "demo devices". Since we already have 20~ish audio plugin APKs and it's going to grow, it makes more sense to provide easier way to install those plugins, rather than going to each project to download an APK and install manually for 20+ repos.
 
@@ -16,7 +16,11 @@ Not [Firebase Testing](https://firebase.google.com/docs/app-distribution/android
 
 But we do indeed use DeployGate to distribute *this* application. You can find it at: https://dply.me/vl8vfr (you have to install DeployGate app first though).
 
-## Limitations
+## How to use it as a library
+
+[The `app` project](https://github.com/atsushieno/aap-ci-package-installer/blob/main/app/) is the sources for AAP APK Installer. It fill the AAP specific parts of the installer application. `MainActivity.kt` and `AndroidManifest.xml`. There is no Maven package (at least yet), so just add your own project to your checkout.
+
+## Limitations (and/or, Rooms for Improvements)
 
 I wanted to "batch install" multiple APKs, but as a general Android app, it can only "request" user to install i.e. `android.permission.REQUEST_INSTALL_PACKAGES`, not `android.permission.INSTALL_PACKAGES` like Google Play Store app or any other vendor-specific application store app can perform. That would be achieved by batch `adb install` command runs at host elsewhere.
 
@@ -36,9 +40,15 @@ Since we cannot get a lot of information about the target APK without downloadin
 
 API wise, I don't use PackageInstaller and stick to deprecated `Intent.ACTION_INSTALL_PACKAGE` approach. It is simply because I could not find any single working example of the API and thus [I could not get it working](https://github.com/atsushieno/aap-ci-package-installer/blob/a41ea213728bd8434da08b04497988cfa4757145/app/src/main/java/dev/atsushieno/cipackageinstaller/AppModel.kt#L73). Google's own [ApiDemos](https://android.googlesource.com/platform/development/+/master/samples/ApiDemos/) does not work either (you can find my extracted port to Android Studio project [here](https://drive.google.com/file/d/1IRGJSTbR2fJzveJjbP6Y9sNynh3tWXIj/view?usp=share_link).
 
+Graphical Design and UX is kind of horrible. It is not the taste I want to push. PRs for improvements are welcomed.
+
 ## Contributing
 
-There are many rooms for improvements and we welcome contributions. If you are going to send a pull request, we ask you to license your contribution under the MIT license. We may change any of your code afterwards. Sometimes such changes may be buggy and your contributions could get broken. We are not perfect, sorry, please bear with us.
+As listed above, there are many rooms for improvements and we welcome contributions. Since this application exists just as a side work for the entire AAP ecosystem, I have almost no motivation to improve general usability for *others*, so "feature requests" are likely ignored. Even bug reports may be ignored unless they are blocker *for me*. Instead, pull requests that actually achieves improvements are highly welcomed.
+
+If you are going to send a pull request, we ask you to license your contribution under the MIT license.
+
+We may change any of your code afterwards. Sometimes our changes are buggy and your contributions could get broken. We are not great developers, sorry, but please bear with us.
 
 ## Licenses
 
