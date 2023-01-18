@@ -41,6 +41,6 @@ jobs:
       if: success()
       uses: actions/upload-artifact@v2
       with:
-        name: app-debug.aar
-        path: app/build/outputs/aar/app-debug.aar
+        name: app-debug.apk
+        path: app/build/outputs/apk/release/app-release-unsigned.apk
 
