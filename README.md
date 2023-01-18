@@ -8,7 +8,7 @@ Currently this application only targets AAP (Audio Plugins For Android) projects
 
 ## Rationale
 
-We need something to facilitate testing existing audio plugins to provide easier access to experience the AAP ecosystem. Since already have 20~ish audio plugin APKs and it's going to grow, it makes more sense to provide easier way to install those plugins, rather than going to each project to download an APK and install manually for 20+ repos.
+We need something to facilitate testing existing audio plugins to provide easier access to experience the AAP ecosystem. Or, we sometimes need to demonstrate or "show off" what the current state of union is like, often on a dedicated "demo devices". Since we already have 20~ish audio plugin APKs and it's going to grow, it makes more sense to provide easier way to install those plugins, rather than going to each project to download an APK and install manually for 20+ repos.
 
 Not [Firebase Testing](https://firebase.google.com/docs/app-distribution/android/distribute-gradle)? It is possible to distribute testing APKs and probably tooling works, but looks like we have to create one app per apk / repo, which is quite annoying to manage. We may use it for individual development, but not for this particular need.
 
@@ -26,11 +26,11 @@ Currently only GitHub Actions is supported, but it could be extended to any CI b
 
 Currently only such a build artifact that contains an APK is supported.
 
-Currently the target apps are listed in the hard-coded catalogs, but they can be extended to anything e.g. download catalogs, query at GitHub, everything for the logged user.
+Currently the target apps are listed in the hard-coded catalogs, but they can be extended to anything e.g. download catalogs, query at GitHub, everything for the logged user. The catalog information does not seem to be strictly examined at install time, but "Uninstall" operation on the UI depends on the precise package name.
 
 Due to the AAP plugin ecosystem compatibility, the packages may vary depending on the AAP protocol version. It may be a good idea for us (or people like us) to provide multiple sets of catalogs. It may be just easier to provide multiple apps based on this codebase though.
 
-Since we cannot get a lot of information about the target APK without downloading it, it is unlikely to happen that the catalog could be fully automatically filled.
+Since we cannot get a lot of information about the target APK without downloading it, it is unlikely to happen that the catalog could be fully automatically filled. It is more likely that we expect some metadata text file in the source tree so that we can retrieve before downloading the artifact.
 
 API wise, I don't use PackageInstaller and stick to deprecated `Intent.ACTION_INSTALL_PACKAGE` approach. It is simply because I could not find any single working example of the API and thus [I could not get it working](https://github.com/atsushieno/aap-ci-package-installer/blob/a41ea213728bd8434da08b04497988cfa4757145/app/src/main/java/dev/atsushieno/cipackageinstaller/AppModel.kt#L73). Google's own [ApiDemos](https://android.googlesource.com/platform/development/+/master/samples/ApiDemos/) does not work either (you can find my extracted port to Android Studio project [here](https://drive.google.com/file/d/1IRGJSTbR2fJzveJjbP6Y9sNynh3tWXIj/view?usp=share_link).
 

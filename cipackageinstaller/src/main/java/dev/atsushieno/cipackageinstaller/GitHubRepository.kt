@@ -64,28 +64,29 @@ class GitHubRepository private constructor(override val info: GitHubRepositoryIn
 
     override fun downloadApp(): File {
         val tmpZipFile = File.createTempFile("GHTempArtifact", ".zip")
-        artifact.download { inStream ->
-            AppModel.copyStream(inStream, tmpZipFile)
-        }
-        val zipFile = ZipFile(tmpZipFile)
-        val tmpAppFile = File.createTempFile("GHTempApp", ".apk") // apk or aab
-        var appFileName: String
-        val entry = zipFile.entries().iterator().asSequence().firstOrNull {
-            it.name.endsWith(".apk") || it.name.endsWith(".aab")
-        }
-        if (entry != null) {
-            appFileName = entry.name
-            println("Downloading $appFileName ...")
-            val inAppStream = zipFile.getInputStream(entry)
-            AppModel.copyStream(inAppStream, tmpAppFile)
-            if (!tmpAppFile.exists() || tmpAppFile.length() != artifact.sizeInBytes)
-                throw CIPackageInstallerException("Artifact uncompressed size mismatch: expected ${artifact.sizeInBytes}, got ${tmpAppFile.length()}")
-        }
-        else
-            throw CIPackageInstallerException("... app entry in the artifact not found at run #${workflowRun.runNumber} for $repoName")
+        try {
+            artifact.download { inStream ->
+                AppModel.copyStream(inStream, tmpZipFile)
+            }
+            val zipFile = ZipFile(tmpZipFile)
+            val entry = zipFile.entries().iterator().asSequence().firstOrNull {
+                it.name.endsWith(".apk") || it.name.endsWith(".aab")
+            }
+            if (entry != null) {
+                val tmpAppFile = File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk or aab
 
-        tmpZipFile.delete()
-        return tmpAppFile
+                println("Downloading ${entry.name} ...")
+                val inAppStream = zipFile.getInputStream(entry)
+                AppModel.copyStream(inAppStream, tmpAppFile)
+                if (!tmpAppFile.exists() || tmpAppFile.length() != artifact.sizeInBytes)
+                    throw CIPackageInstallerException("Artifact uncompressed size mismatch: expected ${artifact.sizeInBytes}, got ${tmpAppFile.length()}")
+
+                return tmpAppFile
+            } else
+                throw CIPackageInstallerException("... app entry in the artifact not found at run #${workflowRun.runNumber} for $repoName")
+        } finally {
+            tmpZipFile.delete()
+        }
     }
 
     init {
@@ -117,7 +118,7 @@ class GitHubRepository private constructor(override val info: GitHubRepositoryIn
 
 @Suppress("unused")
 class CIPackageInstallerException : Exception {
-    constructor() : this("CIPackageInstallerException occured")
+    constructor() : this("CIPackageInstallerException occurred")
     constructor(message: String) : this (message, null)
     constructor(message: String, innerException: Exception?) : super(message, innerException)
 }

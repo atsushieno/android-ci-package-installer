@@ -28,16 +28,23 @@ fun RepositoryDetails(index: Int) {
         Column {
             Row {
                 Text(repo.info.name, fontSize = 20.sp)
-                Button(onClick = {
-                    Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-                        AppModel.performInstallPackage(context, repo)
-                    }
-                }) {
-                    Text("Download")
-                }
             }
             Text(repo.versionId)
             Text(repo.appName)
+            Button(onClick = {
+                Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
+                    AppModel.performInstallPackage(context, repo)
+                }
+            }) {
+                Text("Download and Install")
+            }
+            Button(onClick = {
+                Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
+                    AppModel.performUninstallPackage(context, repo)
+                }
+            }) {
+                Text("Uninstall")
+            }
         }
     } else {
         Text("loading...")

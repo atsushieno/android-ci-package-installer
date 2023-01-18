@@ -1,7 +1,5 @@
 package dev.atsushieno.cipackageinstaller
 
-import android.R.id
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Bundle
@@ -20,25 +18,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.atsushieno.cipackageinstaller.ui.theme.CIPackageInstallerTheme
 
-
-class MainActivity : CIPackageInstallerActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        AppModel.applicationStore.initialize(this)
-        AppModel.findExistingPackages = { context -> queryInstalledAudioPluginPackages(context) }
-    }
-
-    fun queryInstalledAudioPluginPackages(context: Context, packageNameFilter: String? = null): List<String> {
-        val AAP_ACTION_NAME = "org.androidaudioplugin.AudioPluginService.V2"
-
-        val intent = Intent(AAP_ACTION_NAME)
-        if (packageNameFilter != null)
-            intent.setPackage(packageNameFilter)
-        return context.packageManager.queryIntentServices(intent, 0).map { it.serviceInfo.packageName }
-            .distinct()
-    }
-}
 
 open class CIPackageInstallerActivity : ComponentActivity() {
     companion object {
@@ -80,6 +59,8 @@ open class CIPackageInstallerActivity : ComponentActivity() {
                 Toast.makeText(this, "Uninstall Failed!", Toast.LENGTH_SHORT).show()
             }
         }
+        else
+            super.onActivityResult(requestCode, resultCode, intent)
     }
     override fun onNewIntent(intent: Intent?) {
         if (intent != null) {
@@ -99,12 +80,12 @@ open class CIPackageInstallerActivity : ComponentActivity() {
                     ).show()
 
                     PackageInstaller.STATUS_FAILURE, PackageInstaller.STATUS_FAILURE_ABORTED, PackageInstaller.STATUS_FAILURE_BLOCKED, PackageInstaller.STATUS_FAILURE_CONFLICT, PackageInstaller.STATUS_FAILURE_INCOMPATIBLE, PackageInstaller.STATUS_FAILURE_INVALID, PackageInstaller.STATUS_FAILURE_STORAGE -> Toast.makeText(
-                        this, "Install failed! $status" + ", " + id.message,
+                        this, "Install failed! [$status] $message",
                         Toast.LENGTH_SHORT
                     ).show()
 
                     else -> Toast.makeText(
-                        this, "Unrecognized status received from installer: $status",
+                        this, "Unrecognized status received from installer: [$status] $message",
                         Toast.LENGTH_SHORT
                     ).show()
                 }

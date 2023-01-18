@@ -16,15 +16,34 @@ import java.io.InputStream
 import java.io.OutputStream
 
 abstract class ApplicationStore(val referrer: String) {
+    companion object {
+        val empty = EmptyApplicationStore()
+    }
+
+    class EmptyApplicationStore : ApplicationStore("") {
+        override val repositories: List<RepositoryInformation> = listOf()
+        override fun initialize(context: Context) {}
+    }
+
+    class MergedApplicationStore(referrer: String) : ApplicationStore(referrer) {
+
+        // Note that after call to initialize() on this class itself, any added store must be initialized before being added to this list.
+        val stores = mutableListOf<ApplicationStore>()
+
+        override val repositories: List<RepositoryInformation>
+            get() = stores.flatMap { repositories }
+        override fun initialize(context: Context) {
+            stores.forEach { it.initialize(context) }
+        }
+    }
+
     abstract val repositories: List<RepositoryInformation>
     abstract fun initialize(context: Context)
 }
 
-data class GitHubCredentials(val username: String, val pat: String)
-
 object AppModel {
-    val FILE_APK_PROVIDER_AUTHORITY = "dev.atsushieno.cipackageinstaller.fileprovider"
-    const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/CIApkInstaller"
+    val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
+    const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/aap-ci-package-installer"
 
     fun createSharedPreferences(context: Context) : SharedPreferences {
         val masterKey = MasterKey.Builder(context)
@@ -35,11 +54,11 @@ object AppModel {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
     }
 
-    fun getGitHubCredentials(context: Context) : GitHubCredentials {
+    fun getGitHubCredentials(context: Context) : GitHubRepositoryStore.GitHubCredentials {
         val sp = createSharedPreferences(context)
         val user = sp.getString("GITHUB_USER", "") ?: ""
         val pat = sp.getString("GITHUB_PAT", "") ?: ""
-        return GitHubCredentials(user, pat)
+        return GitHubRepositoryStore.GitHubCredentials(user, pat)
     }
 
     fun setGitHubCredentials(context: Context, username: String, pat: String) {
@@ -96,7 +115,7 @@ object AppModel {
         */
         val file = repo.downloadApp()
         val intent = Intent(Intent.ACTION_INSTALL_PACKAGE)
-        intent.data = FileProvider.getUriForFile(context, FILE_APK_PROVIDER_AUTHORITY, file)
+        intent.data = FileProvider.getUriForFile(context, context.packageName + FILE_APK_PROVIDER_AUTHORITY_SUFFIX, file)
         intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
         intent.putExtra(Intent.EXTRA_RETURN_RESULT, true)
@@ -111,9 +130,19 @@ object AppModel {
             context.startActivity(unknownAppSourceIntent)
         }
     }
+    fun performUninstallPackage(context: Context, repo: Repository) {
+        val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE)
+        intent.data = Uri.parse(
+            "package:${repo.info.packageName}"
+        )
+        intent.putExtra(Intent.EXTRA_RETURN_RESULT, true)
+        (context as Activity).startActivityForResult(intent, CIPackageInstallerActivity.REQUEST_UNINSTALL)
+    }
 
-    private val githubApplicationStore = GitHubRepositoryStore(GITHUB_REPOSITORY_REFERRER)
-    val applicationStore: ApplicationStore = githubApplicationStore
+    // provide access to GitHub specific properties such as `guthubRepositories`
+    val githubApplicationStore = GitHubRepositoryStore(GITHUB_REPOSITORY_REFERRER)
+
+    var applicationStore: ApplicationStore = githubApplicationStore
 
     var findExistingPackages: (Context) -> List<String> = { listOf() }
 }
