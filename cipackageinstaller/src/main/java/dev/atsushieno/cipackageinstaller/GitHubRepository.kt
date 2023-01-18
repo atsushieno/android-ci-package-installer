@@ -78,7 +78,7 @@ class GitHubRepository private constructor(override val info: GitHubRepositoryIn
                 println("Downloading ${entry.name} ...")
                 val inAppStream = zipFile.getInputStream(entry)
                 AppModel.copyStream(inAppStream, tmpAppFile)
-                if (!tmpAppFile.exists() || tmpAppFile.length() != artifact.sizeInBytes)
+                if (!tmpAppFile.exists() || tmpAppFile.length() != entry.size)
                     throw CIPackageInstallerException("Artifact uncompressed size mismatch: expected ${artifact.sizeInBytes}, got ${tmpAppFile.length()}")
 
                 return tmpAppFile

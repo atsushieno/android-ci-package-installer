@@ -41,6 +41,6 @@ jobs:
       if: success()
       uses: actions/upload-artifact@v3
       with:
-        name: app-debug.apk
+        name: apks
         path: app/**/*.apk
 
