@@ -39,8 +39,8 @@ jobs:
       run: ./gradlew build
     - name: upload artifact
       if: success()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: app-debug.apk
-        path: app/build/outputs/apk/release/app-release-unsigned.apk
+        path: **/*.apk
 
