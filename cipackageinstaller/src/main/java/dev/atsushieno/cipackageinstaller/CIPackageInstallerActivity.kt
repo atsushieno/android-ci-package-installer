@@ -113,7 +113,7 @@ fun TopLevelNavHost() {
         }
         composable(Routes.AppDetails.route,
             arguments = listOf(navArgument("index") { type = NavType.IntType })) {
-            RepositoryDetails(index = it.arguments!!.getInt("index", 0))
+            RepositoryDetails(navController, index = it.arguments!!.getInt("index", 0))
         }
     }
 }

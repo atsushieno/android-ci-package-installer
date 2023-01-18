@@ -1,5 +1,7 @@
 package dev.atsushieno.cipackageinstaller
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
@@ -12,18 +14,33 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.coroutineContext
 
 @Composable
-fun RepositoryDetails(index: Int) {
+fun RepositoryDetails(navController: NavController, index: Int) {
+    val context = LocalContext.current
+
     val coroutineScope = rememberCoroutineScope()
     var repoState by remember { mutableStateOf<Repository?>(null) }
-    if (repoState == null)
+    if (repoState == null) {
         Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-            repoState = AppModel.applicationStore.repositories[index].createRepository()
+            try {
+                repoState = AppModel.applicationStore.repositories[index].createRepository()
+            } catch(ex: CIPackageInstallerException) {
+                Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
+                Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                    navController.navigate(Routes.Home.route) { popUpTo(Routes.Home.route) }
+                    Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+                }
+            }
         }
+    }
+
     val repo = repoState
-    val context = LocalContext.current
     if (repo != null) {
         Column {
             Row {
@@ -33,14 +50,28 @@ fun RepositoryDetails(index: Int) {
             Text(repo.appName)
             Button(onClick = {
                 Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-                    AppModel.performInstallPackage(context, repo)
+                    try {
+                        AppModel.performInstallPackage(context, repo)
+                    } catch(ex: CIPackageInstallerException) {
+                        Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
+                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                            Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+                        }
+                    }
                 }
             }) {
                 Text("Download and Install")
             }
             Button(onClick = {
                 Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-                    AppModel.performUninstallPackage(context, repo)
+                    try {
+                        AppModel.performUninstallPackage(context, repo)
+                    } catch(ex: CIPackageInstallerException) {
+                        Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
+                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                            Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+                        }
+                    }
                 }
             }) {
                 Text("Uninstall")

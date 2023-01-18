@@ -42,6 +42,8 @@ abstract class ApplicationStore(val referrer: String) {
 }
 
 object AppModel {
+    val LOG_TAG: String = "CIPackageInstaller"
+
     val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
     const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/aap-ci-package-installer"
 
