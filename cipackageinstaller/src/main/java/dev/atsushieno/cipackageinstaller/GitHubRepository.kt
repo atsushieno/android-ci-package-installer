@@ -91,16 +91,16 @@ class GitHubRepository private constructor(override val info: GitHubRepositoryIn
 
     init {
         val repoData = info.owner.github.getRepository(repoName)
-        val runs =
+
+        val run =
             repoData.queryWorkflowRuns()
                 .branch("main")
                 .event(GHEvent.PUSH)
                 .status(GHWorkflowRun.Status.COMPLETED)
                 .list()
                 .filter { r -> r.conclusion == GHWorkflowRun.Conclusion.SUCCESS }
-                .filter { r -> r.listArtifacts().toArray().any { a -> !a.isExpired } }
-        val run = runs.firstOrNull()
-            ?: throw CIPackageInstallerException("GitHub repository $repoName does not have any workflow runs yet")
+                .firstOrNull { r -> r.listArtifacts().toArray().any { a -> !a.isExpired } }
+                ?: throw CIPackageInstallerException("GitHub repository $repoName does not have any workflow runs yet")
         workflowRun = run
 
         println("---- Workflow Run ----")
