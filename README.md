@@ -1,6 +1,8 @@
 # What is this?
 
-![AAP-CI-Package-Installer sshot](./docs/images/aap-ci-package-installer.png)
+![AAP APK Installer sshot](./docs/images/aap-ci-package-installer.png)
+
+It started as a project started as my AAP APK Installer, and now it also works as a reusable application installer library.
 
 [AAP (Audio Plugins For Android)](https://github.com/atsushieno/aap-core) is an (experimental) audio plugins framework for Android that comes with [various audio plugins](https://github.com/atsushieno/aap-core/wiki/List-of-AAP-plugins-and-hosts) as Android apps. Since it is annoying to install all those packages to a new device or emulator (for development) one by one using Android Studio, we want to have a simpler plugin "installer" application. **AAP APK Installer** is created for this purpose. It is like [Native Instrument's Native Access](https://www.native-instruments.com/en/specials/native-access-2/), but so far for development build artifacts (we have no "release builds" yet).
 
@@ -18,7 +20,7 @@ But we do indeed use DeployGate to distribute *this* application. You can find i
 
 ## How to use it as a library
 
-[The `app` project](https://github.com/atsushieno/aap-ci-package-installer/blob/main/app/) is the sources for AAP APK Installer. It fill the AAP specific parts of the installer application. `MainActivity.kt` and `AndroidManifest.xml`. There is no Maven package (at least yet), so just add your own project to your checkout.
+[The `app` project](https://github.com/atsushieno/android-ci-package-installer/blob/main/app/) is the sources for AAP APK Installer. It fill the AAP specific parts of the installer application. `MainActivity.kt` and `AndroidManifest.xml`. There is no Maven package (at least yet), so just add your own project to your checkout.
 
 ## Limitations (and/or, Rooms for Improvements)
 
@@ -38,7 +40,7 @@ Due to the AAP plugin ecosystem compatibility, the packages may vary depending o
 
 Since we cannot get a lot of information about the target APK without downloading it, it is unlikely to happen that the catalog could be fully automatically filled. It is more likely that we expect some metadata text file in the source tree so that we can retrieve before downloading the artifact.
 
-API wise, I don't use PackageInstaller and stick to deprecated `Intent.ACTION_INSTALL_PACKAGE` approach. It is simply because I could not find any single working example of the API and thus [I could not get it working](https://github.com/atsushieno/aap-ci-package-installer/blob/a41ea213728bd8434da08b04497988cfa4757145/app/src/main/java/dev/atsushieno/cipackageinstaller/AppModel.kt#L73). Google's own [ApiDemos](https://android.googlesource.com/platform/development/+/master/samples/ApiDemos/) does not work either (you can find my extracted port to Android Studio project [here](https://drive.google.com/file/d/1IRGJSTbR2fJzveJjbP6Y9sNynh3tWXIj/view?usp=share_link).
+API wise, I don't use PackageInstaller and stick to deprecated `Intent.ACTION_INSTALL_PACKAGE` approach. It is simply because I could not find any single working example of the API and thus [I could not get it working](https://github.com/atsushieno/android-ci-package-installer/blob/a41ea213728bd8434da08b04497988cfa4757145/app/src/main/java/dev/atsushieno/cipackageinstaller/AppModel.kt#L73). Google's own [ApiDemos](https://android.googlesource.com/platform/development/+/master/samples/ApiDemos/) does not work either (you can find my extracted port to Android Studio project [here](https://drive.google.com/file/d/1IRGJSTbR2fJzveJjbP6Y9sNynh3tWXIj/view?usp=share_link).
 
 Graphical Design and UX is kind of horrible. It is not the taste I want to push. PRs for improvements are welcomed.
 
@@ -52,6 +54,6 @@ We may change any of your code afterwards. Sometimes our changes are buggy and y
 
 ## Licenses
 
-AAP-CI-Package-Installer is licensed under the MIT license.
+Android-CI-Package-Installer and AAP APK Installer are licensed under the MIT license.
 
-AAP-CI-Package-Installer heavily depends on [GitHub API for Java](https://github-api.kohsuke.org/) by Kohsuke Kawaguchi and other contributors. It is distributed under the MIT license.
+Android-CI-Package-Installer heavily depends on [GitHub API for Java](https://github-api.kohsuke.org/) by Kohsuke Kawaguchi and other contributors. It is distributed under the MIT license.
