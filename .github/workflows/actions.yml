@@ -36,11 +36,11 @@ jobs:
         path: /home/runner/.gradle/caches/
         key: ${{ runner.os }}-gradle-caches
     - name: build
-      run: ./gradlew build
+      run: ./gradlew bundle
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v3
       with:
-        name: apks
-        path: app/**/*.apk
+        name: aabs
+        path: app/**/*.aab
 
