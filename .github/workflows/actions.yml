@@ -42,5 +42,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: aabs
-        path: app/**/*.aab
+        path: app/build/outputs/**/*.aab
 
