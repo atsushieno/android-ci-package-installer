@@ -91,7 +91,7 @@ object AppModel {
         }
     }
 
-    fun performInstallPackage(context: Context, repo: Repository) {
+    fun performInstallPackage(context: Context, download: ApplicationArtifact) {
         /*
         val installer = context.packageManager.packageInstaller
         val existing = installer.allSessions.firstOrNull { it.appPackageName == repo.info.packageName && it.isActive }
@@ -115,7 +115,7 @@ object AppModel {
         session.commit(pendingIntent.intentSender)
         println("committed.")
         */
-        val file = repo.downloadApp()
+        val file = download.downloadApp()
         val intent = Intent(Intent.ACTION_INSTALL_PACKAGE)
         intent.data = FileProvider.getUriForFile(context, context.packageName + FILE_APK_PROVIDER_AUTHORITY_SUFFIX, file)
         intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION

@@ -2,8 +2,11 @@ package dev.atsushieno.cipackageinstaller
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,7 +15,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -24,12 +30,14 @@ import kotlin.coroutines.coroutineContext
 fun RepositoryDetails(navController: NavController, index: Int) {
     val context = LocalContext.current
 
+    val repoInfo = AppModel.applicationStore.repositories[index]
+
     val coroutineScope = rememberCoroutineScope()
     var repoState by remember { mutableStateOf<Repository?>(null) }
     if (repoState == null) {
         Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
             try {
-                repoState = AppModel.applicationStore.repositories[index].createRepository()
+                repoState = repoInfo.createRepository()
             } catch(ex: CIPackageInstallerException) {
                 Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
                 Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
@@ -40,44 +48,47 @@ fun RepositoryDetails(navController: NavController, index: Int) {
         }
     }
 
-    val repo = repoState
-    if (repo != null) {
-        Column {
-            Row {
-                Text(repo.info.name, fontSize = 20.sp)
-            }
-            Text(repo.versionId)
-            Text(repo.appName)
-            Button(onClick = {
-                Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-                    try {
-                        AppModel.performInstallPackage(context, repo)
-                    } catch(ex: CIPackageInstallerException) {
-                        Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
-                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                            Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+    Column {
+        Text(repoInfo.name, fontSize = 20.sp)
+        val repo = repoState
+        if (repo != null) {
+            repo.variants.forEach { variant ->
+                Column {
+                    Text(variant.typeName, fontSize = 18.sp, textDecoration = TextDecoration.Underline)
+                    Text(variant.versionId)
+                    Text(variant.artifactName)
+                    Button(onClick = {
+                        Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
+                            try {
+                                AppModel.performInstallPackage(context, variant)
+                            } catch (ex: CIPackageInstallerException) {
+                                Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
+                                Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                                    Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+                                }
+                            }
                         }
+                    }) {
+                        Text("Download and Install")
+                    }
+                    Button(onClick = {
+                        Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
+                            try {
+                                AppModel.performUninstallPackage(context, repo)
+                            } catch (ex: CIPackageInstallerException) {
+                                Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
+                                Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                                    Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    }) {
+                        Text("Uninstall")
                     }
                 }
-            }) {
-                Text("Download and Install")
             }
-            Button(onClick = {
-                Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-                    try {
-                        AppModel.performUninstallPackage(context, repo)
-                    } catch(ex: CIPackageInstallerException) {
-                        Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
-                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                            Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            }) {
-                Text("Uninstall")
-            }
+        } else {
+            Text("loading...")
         }
-    } else {
-        Text("loading...")
     }
 }

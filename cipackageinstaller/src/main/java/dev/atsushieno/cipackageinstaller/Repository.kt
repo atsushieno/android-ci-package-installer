@@ -14,10 +14,15 @@ abstract class RepositoryInformation {
 }
 
 abstract class Repository(open val info: RepositoryInformation) {
+    abstract val variants: List<ApplicationArtifact>
+}
+
+abstract class ApplicationArtifact(open val repository: Repository) {
     abstract fun toPackageInstallerSessionParams() : PackageInstaller.SessionParams
 
     abstract fun downloadApp(): File
 
-    abstract val appName: String
+    abstract val typeName: String
+    abstract val artifactName: String
     abstract val versionId: String
 }
