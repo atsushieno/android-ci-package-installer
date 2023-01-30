@@ -3,6 +3,8 @@ name: build dist
 on:
   push:
   pull_request:
+permissions:
+  contents: write
 
 jobs:
   linux-build:
