@@ -43,7 +43,7 @@ jobs:
       with:
         name: apks and aabs
         path: |
-          app/build/outputs/bundle/debug/*.aab
+          app/build/outputs/apk/debug/*.apk
           app/build/outputs/bundle/release/*.aab
     - name: Create Release
       uses: ncipollo/release-action@v1.12.0
