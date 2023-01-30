@@ -45,7 +45,7 @@ object AppModel {
     val LOG_TAG: String = "CIPackageInstaller"
 
     val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
-    const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/aap-ci-package-installer"
+    const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/android-ci-package-installer"
 
     fun createSharedPreferences(context: Context) : SharedPreferences {
         val masterKey = MasterKey.Builder(context)

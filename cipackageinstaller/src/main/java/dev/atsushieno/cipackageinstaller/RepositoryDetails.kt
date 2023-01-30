@@ -34,11 +34,12 @@ fun RepositoryDetails(navController: NavController, index: Int) {
 
     val coroutineScope = rememberCoroutineScope()
     var repoState by remember { mutableStateOf<Repository?>(null) }
-    if (repoState == null) {
+    val repo = repoState
+    if (repo == null) {
         Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
             try {
                 repoState = repoInfo.createRepository()
-            } catch(ex: CIPackageInstallerException) {
+            } catch (ex: CIPackageInstallerException) {
                 Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
                 Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
                     navController.navigate(Routes.Home.route) { popUpTo(Routes.Home.route) }
@@ -46,14 +47,12 @@ fun RepositoryDetails(navController: NavController, index: Int) {
                 }
             }
         }
-    }
-
-    Column {
-        Text(repoInfo.name, fontSize = 20.sp)
-        val repo = repoState
-        if (repo != null) {
-            repo.variants.forEach { variant ->
-                Column {
+        Text("loading...")
+    } else {
+        if (true) {
+            Column {
+                Text(repoInfo.name, fontSize = 20.sp)
+                repo.variants.forEach { variant ->
                     Text(variant.typeName, fontSize = 18.sp, textDecoration = TextDecoration.Underline)
                     Text(variant.versionId)
                     Text(variant.artifactName)
@@ -87,8 +86,6 @@ fun RepositoryDetails(navController: NavController, index: Int) {
                     }
                 }
             }
-        } else {
-            Text("loading...")
         }
     }
 }

@@ -4,9 +4,19 @@ import android.content.pm.PackageInstaller
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
+import androidx.core.net.toFile
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.kohsuke.github.GHApp
 import org.kohsuke.github.GHArtifact
+import org.kohsuke.github.GHAsset
+import org.kohsuke.github.GHBlob
 import org.kohsuke.github.GHEvent
+import org.kohsuke.github.GHRelease
 import org.kohsuke.github.GHWorkflowRun
+import org.kohsuke.github.GitHub
+import org.kohsuke.github.GitHubRequest
+import org.kohsuke.github.extras.HttpClientGitHubConnector
 import java.io.File
 import java.util.zip.ZipFile
 
@@ -30,15 +40,24 @@ class GitHubRepository internal constructor(override val info: GitHubRepositoryI
 
     val repoName = info.account + "/" + info.repository
 
-    private val variantsList = listOf(GitHubArtifactApplicationArtifact(this))
+    private val variantsList: List<ApplicationArtifact>
     override val variants: List<ApplicationArtifact>
         get() = variantsList
+
+    init {
+        val artifact = GitHubArtifactApplicationArtifact(this)
+        val release = GitHubReleaseApplicationArtifact.create(this)
+        variantsList = if (release != null) listOf(release, artifact) else listOf(artifact)
+    }
 }
 
 class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubRepository)
     : GitHubApplicationArtifact(repository) {
     private val workflowRun: GHWorkflowRun
     private val artifact: GHArtifact
+
+    override val typeName: String
+        get() = "Latest GitHub Actions Artifact"
 
     override val artifactName: String
         get() = "${artifact.name} (workflow #${workflowRun.runNumber})"
@@ -49,9 +68,29 @@ class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubR
     override val artifactSizeInBytes: Long
         get() = artifact.sizeInBytes
 
-    override fun downloadAsFile(dst: File) {
-        artifact.download { inStream ->
-            AppModel.copyStream(inStream, dst)
+    override fun downloadApp(): File {
+        val tmpZipFile = File.createTempFile("GHTempArtifact", ".zip")
+        try {
+            artifact.download { inStream ->
+                AppModel.copyStream(inStream, tmpZipFile)
+            }
+            val zipFile = ZipFile(tmpZipFile)
+            val entry = zipFile.entries().iterator().asSequence().firstOrNull {
+                it.name.endsWith(".apk") || it.name.endsWith(".aab")
+            }
+            if (entry != null) {
+                val tmpAppFile = File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk or aab
+
+                println("Downloading ${entry.name} ...")
+                val inAppStream = zipFile.getInputStream(entry)
+                AppModel.copyStream(inAppStream, tmpAppFile)
+                if (!tmpAppFile.exists() || tmpAppFile.length() != entry.size)
+                    throw CIPackageInstallerException("Artifact uncompressed size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")
+                return tmpAppFile
+            } else
+                throw CIPackageInstallerException("... app entry in the artifact not found at run $artifactName for ${repository.repoName}")
+        } finally {
+            tmpZipFile.delete()
         }
     }
 
@@ -85,6 +124,56 @@ class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubR
     }
 }
 
+class GitHubReleaseApplicationArtifact internal constructor(repository: GitHubRepository, release: GHRelease, asset: GHAsset)
+    : GitHubApplicationArtifact(repository) {
+
+    companion object {
+        fun create(repository: GitHubRepository) : GitHubReleaseApplicationArtifact? {
+            val info = repository.info
+            val repoName = repository.repoName
+            val repoData = info.owner.github.getRepository(repoName)
+
+            val release = repoData.latestRelease
+            val asset = release?.listAssets()?.firstOrNull { it.name.endsWith(".apk") || it.name.endsWith(".aab") }
+                ?: return null
+            return GitHubReleaseApplicationArtifact(repository, release, asset)
+        }
+    }
+
+    override val typeName: String
+        get() = "Latest GitHub Release Artifact"
+
+    private val release: GHRelease
+    private val asset: GHAsset
+    override val artifactSizeInBytes: Long
+        get() = asset.size
+
+    override fun downloadApp(): File {
+        val tmpZipFile = File.createTempFile("GHTempArtifact", "." + File(Uri.parse(asset.browserDownloadUrl).path!!).extension) // .apk or .aab
+        try {
+            val client = OkHttpClient()
+            with(client.newCall(Request.Builder().url(asset.browserDownloadUrl.toString()).build()).execute()) {
+                val stream = this.body?.byteStream() ?: throw CIPackageInstallerException("Failed to download asset for the latest release ${release.name} from ${asset.url}")
+                AppModel.copyStream(stream, tmpZipFile)
+            }
+            return tmpZipFile
+        } finally {
+            tmpZipFile.delete()
+        }
+    }
+
+    override val artifactName: String
+        get() = asset.name
+
+    override val versionId: String
+        get() = release.tagName
+
+    init {
+        this.release = release
+        this.asset = asset
+    }
+}
+
 abstract class GitHubApplicationArtifact internal constructor(override val repository: GitHubRepository)
     : ApplicationArtifact(repository) {
 
@@ -104,37 +193,7 @@ abstract class GitHubApplicationArtifact internal constructor(override val repos
         return p
     }
 
-    override val typeName: String
-        get() = "Latest GitHub Actions Artifact"
-
     abstract val artifactSizeInBytes: Long
-
-    abstract fun downloadAsFile(dst: File)
-
-    override fun downloadApp(): File {
-        val tmpZipFile = File.createTempFile("GHTempArtifact", ".zip")
-        try {
-            downloadAsFile(tmpZipFile)
-            val zipFile = ZipFile(tmpZipFile)
-            val entry = zipFile.entries().iterator().asSequence().firstOrNull {
-                it.name.endsWith(".apk") || it.name.endsWith(".aab")
-            }
-            if (entry != null) {
-                val tmpAppFile = File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk or aab
-
-                println("Downloading ${entry.name} ...")
-                val inAppStream = zipFile.getInputStream(entry)
-                AppModel.copyStream(inAppStream, tmpAppFile)
-                if (!tmpAppFile.exists() || tmpAppFile.length() != entry.size)
-                    throw CIPackageInstallerException("Artifact uncompressed size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")
-
-                return tmpAppFile
-            } else
-                throw CIPackageInstallerException("... app entry in the artifact not found at run $artifactName for ${repository.repoName}")
-        } finally {
-            tmpZipFile.delete()
-        }
-    }
 }
 
 @Suppress("unused")
