@@ -26,9 +26,7 @@ But we do indeed use DeployGate to distribute *this* application. You can find i
 
 I wanted to "batch install" multiple APKs, but as a general Android app, it can only "request" user to install i.e. `android.permission.REQUEST_INSTALL_PACKAGES`, not `android.permission.INSTALL_PACKAGES` like Google Play Store app or any other vendor-specific application store app can perform. That would be achieved by batch `adb install` command runs at host elsewhere.
 
-Since it targets "artifacts" it is more like a development aid, not for mere "users" yet. When we publish APKs to "releases" (we don't currently, as it is not automated). To make it happen, automatic APK uploading to the release would be required first.
-
-GitHub requires sign-in to download artifacts, so a GitHub account and a Personal Access Token is required to download those APKs.
+It targets "artifacts" and "releases" nowadays. For GitHub Actions build artifacts, GitHub requires sign-in to download them. Therefore, Android-CI-Package-Installer requires GitHub account and a Personal Access Token to download those APKs. It works more like a development aid, not for end users.
 
 Currently only GitHub Actions is supported, but it could be extended to any CI builds.
 
