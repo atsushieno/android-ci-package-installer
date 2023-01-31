@@ -47,8 +47,8 @@ class GitHubRepository internal constructor(override val info: GitHubRepositoryI
 
     init {
         val artifact = GitHubArtifactApplicationArtifact(this)
-        val release = GitHubReleaseApplicationArtifact.create(this)
-        variantsList = if (release != null) listOf(release, artifact) else listOf(artifact)
+        val releases = GitHubReleaseApplicationArtifact.createReleases(this, 3)
+        variantsList = releases + artifact
     }
 }
 
@@ -125,27 +125,32 @@ class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubR
     }
 }
 
-class GitHubReleaseApplicationArtifact internal constructor(repository: GitHubRepository, release: GHRelease, asset: GHAsset)
+class GitHubReleaseApplicationArtifact
+internal constructor(repository: GitHubRepository,
+                     private val release: GHRelease,
+                     private val asset: GHAsset)
     : GitHubApplicationArtifact(repository) {
 
     companion object {
-        fun create(repository: GitHubRepository) : GitHubReleaseApplicationArtifact? {
+        fun createReleases(repository: GitHubRepository, count: Int) : List<GitHubReleaseApplicationArtifact> {
             val info = repository.info
-            val repoName = repository.repoName
-            val repoData = info.owner.github.getRepository(repoName)
+            val repoData = info.owner.github.getRepository(repository.repoName)
 
-            val release = repoData.latestRelease
-            val asset = release?.listAssets()?.firstOrNull { it.name.endsWith(".apk") || it.name.endsWith(".aab") }
-                ?: return null
-            return GitHubReleaseApplicationArtifact(repository, release, asset)
+            return repoData.listReleases().map { release ->
+                Pair(release,
+                    release.listAssets()
+                        ?.firstOrNull { it.name.endsWith(".apk") || it.name.endsWith(".aab") })
+            }
+                .filter { it.second != null }.take(count)
+                .map {
+                    GitHubReleaseApplicationArtifact(repository, it.first, it.second!!)
+                }
         }
     }
 
     override val typeName: String
-        get() = "Latest GitHub Release Artifact"
+        get() = "GitHub Release: " + release.name
 
-    private val release: GHRelease
-    private val asset: GHAsset
     override val artifactSizeInBytes: Long
         get() = asset.size
 
@@ -166,11 +171,6 @@ class GitHubReleaseApplicationArtifact internal constructor(repository: GitHubRe
 
     override val versionId: String
         get() = release.tagName
-
-    init {
-        this.release = release
-        this.asset = asset
-    }
 }
 
 abstract class GitHubApplicationArtifact internal constructor(override val repository: GitHubRepository)
