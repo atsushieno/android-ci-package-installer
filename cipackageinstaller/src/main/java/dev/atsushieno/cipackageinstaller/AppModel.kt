@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
+import android.os.FileUtils
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -81,8 +82,8 @@ object AppModel {
 
     private fun copyStream(inFS: InputStream, outFS: OutputStream) {
         val bytes = ByteArray(4096)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            inFS.transferTo(outFS)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            FileUtils.copy(inFS, outFS)
         } else {
             while (inFS.available() > 0) {
                 val size = inFS.read(bytes)

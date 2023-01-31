@@ -4,6 +4,7 @@ import android.content.pm.PackageInstaller
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import androidx.core.net.toFile
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -149,17 +150,15 @@ class GitHubReleaseApplicationArtifact internal constructor(repository: GitHubRe
         get() = asset.size
 
     override fun downloadApp(): File {
-        val tmpZipFile = File.createTempFile("GHTempArtifact", "." + File(Uri.parse(asset.browserDownloadUrl).path!!).extension) // .apk or .aab
-        try {
-            val client = OkHttpClient()
-            with(client.newCall(Request.Builder().url(asset.browserDownloadUrl.toString()).build()).execute()) {
-                val stream = this.body?.byteStream() ?: throw CIPackageInstallerException("Failed to download asset for the latest release ${release.name} from ${asset.url}")
-                AppModel.copyStream(stream, tmpZipFile)
-            }
-            return tmpZipFile
-        } finally {
-            tmpZipFile.delete()
+        val tmpAppFile = File.createTempFile("GHTempArtifact", "." + File(Uri.parse(asset.browserDownloadUrl).path!!).extension) // .apk or .aab
+        val client = OkHttpClient()
+        with(client.newCall(Request.Builder().url(asset.browserDownloadUrl.toString()).build()).execute()) {
+            val stream = this.body?.byteStream() ?: throw CIPackageInstallerException("Failed to download asset for the latest release ${release.name} from ${asset.url}")
+            AppModel.copyStream(stream, tmpAppFile)
         }
+        if (!tmpAppFile.exists() || tmpAppFile.length() != artifactSizeInBytes)
+            throw CIPackageInstallerException("Release artifact size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")
+        return tmpAppFile
     }
 
     override val artifactName: String
