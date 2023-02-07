@@ -94,25 +94,26 @@ object AppModel {
 
     fun performInstallPackage(context: Context, download: ApplicationArtifact) {
         /*
+        val repo = download.repository
         val installer = context.packageManager.packageInstaller
         val existing = installer.allSessions.firstOrNull { it.appPackageName == repo.info.packageName && it.isActive }
         if (existing != null)
             throw CIPackageInstallerException("Another operation for the package '${repo.info.packageName}' is in progress. Please wait for its completion.")
-        val params = repo.toPackageInstallerSessionParams()
+        val params = download.toPackageInstallerSessionParams()
         val session = installer.openSession(installer.createSession(params))
 
-        val file = repo.downloadApp()
+        val file = download.downloadApp()
         val outStream = session.openWrite(file.name, 0, file.length())
         val inStream = FileInputStream(file)
         copyStream(inStream, outStream)
         session.fsync(outStream)
         outStream.close()
 
-        val intent = Intent(context, MainActivity::class.java)
+        val intent = Intent(context, context.javaClass)
         intent.action = CIPackageInstallerActivity.PACKAGE_INSTALLED_ACTION
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_MUTABLE)
-        println("ready to install ${repo.appName} ...")
+        println("ready to install ${repo.info.appLabel} ...")
         session.commit(pendingIntent.intentSender)
         println("committed.")
         */
