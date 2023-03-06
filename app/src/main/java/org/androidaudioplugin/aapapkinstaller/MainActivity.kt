@@ -37,6 +37,8 @@ class MainActivity : CIPackageInstallerActivity() {
                 "org.androidaudioplugin.ports.lv2.string_machine", "AAP String Machine"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-juce-plugin-host",
                 "org.androidaudioplugin.ports.juce.audiopluginhost", "AAP AudioPluginHost"),
+            GitHubRepositoryInformation(store, "atsushieno", "aap-juce-simple-host",
+                "org.androidaudioplugin.samples.simple_plugin_host", "AAP SimpleHost"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-juce-helio",
                 "org.androidaudioplugin.ports.juce.helio", "AAP Helio"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-juce-obxd",
