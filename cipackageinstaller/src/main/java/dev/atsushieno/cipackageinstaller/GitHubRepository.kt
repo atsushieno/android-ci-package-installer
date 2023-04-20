@@ -46,9 +46,11 @@ class GitHubRepository internal constructor(override val info: GitHubRepositoryI
         get() = variantsList
 
     init {
-        val artifact = GitHubArtifactApplicationArtifact(this)
         val releases = GitHubReleaseApplicationArtifact.createReleases(this, 3)
-        variantsList = releases + artifact
+        variantsList = if (!AppModel.githubApplicationStore.github.isAnonymous)
+            releases + GitHubArtifactApplicationArtifact(this)
+        else
+            releases
     }
 }
 

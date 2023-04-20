@@ -43,12 +43,12 @@ abstract class ApplicationStore(val referrer: String) {
 }
 
 object AppModel {
-    val LOG_TAG: String = "CIPackageInstaller"
+    const val LOG_TAG: String = "CIPackageInstaller"
 
-    val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
-    const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/android-ci-package-installer"
+    private const val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
+    private const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/android-ci-package-installer"
 
-    fun createSharedPreferences(context: Context) : SharedPreferences {
+    private fun createSharedPreferences(context: Context) : SharedPreferences {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()

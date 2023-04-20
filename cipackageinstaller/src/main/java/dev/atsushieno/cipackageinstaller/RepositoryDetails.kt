@@ -54,7 +54,7 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
                 }
             }
         }
-        Text("loading...")
+        Text("fetching repository details from GitHub...")
     } else {
         Text(repoInfo.name, fontSize = 20.sp)
         repo.variants.forEach { variant ->

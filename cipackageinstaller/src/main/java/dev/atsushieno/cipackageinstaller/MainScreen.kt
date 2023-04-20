@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,10 +49,13 @@ fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
     val hasGitHubCredentials = username.isNotEmpty() && pat.isNotEmpty()
     var toggleGitHubAccountState by remember { mutableStateOf(!hasGitHubCredentials) }
     val descriptionText = if (hasGitHubCredentials) alreadyHasUserInfText else needsUserInfoText
+    var showCredentialRemovalConfirmationState by remember { mutableStateOf(false) }
 
     Column {
         Column(modifier = Modifier.border(2.dp, color = Color.Gray)) {
-            Row(modifier = Modifier.padding(4.dp).clickable { toggleGitHubAccountState = !toggleGitHubAccountState }) {
+            Row(modifier = Modifier
+                .padding(4.dp)
+                .clickable { toggleGitHubAccountState = !toggleGitHubAccountState }) {
                 Text(descriptionText)
             }
             if (toggleGitHubAccountState) {
@@ -64,23 +68,33 @@ fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
                 Text("Personal Access Token:")
                 Row {
                     // see-no-evil monkey vs. monkey
-                    Text(text = if (isPasswordVisible) "\uD83D\uDC35" else "\uD83D\uDE48", modifier = Modifier.clickable { isPasswordVisible = !isPasswordVisible}.defaultMinSize(30.dp))
+                    Text(text = if (isPasswordVisible) "\uD83D\uDC35" else "\uD83D\uDE48", modifier = Modifier
+                        .clickable { isPasswordVisible = !isPasswordVisible }
+                        .defaultMinSize(30.dp))
                     TextField(
                         value = pat, singleLine = true, onValueChange = { v: String -> pat = v },
                         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(0.95f)
                     )
                 }
-                Button(onClick = {
-                    if (username.isNotEmpty() && pat.isNotEmpty()) {
-                        AppModel.setGitHubCredentials(context, username, pat)
-                        toggleGitHubAccountState = false
-                        Toast.makeText(context, credentialsAreSetText, Toast.LENGTH_SHORT).show()
+                Row {
+                    Button(onClick = {
+                        if (username.isNotEmpty() && pat.isNotEmpty()) {
+                            AppModel.setGitHubCredentials(context, username, pat)
+                            toggleGitHubAccountState = false
+                            Toast.makeText(context, credentialsAreSetText, Toast.LENGTH_SHORT)
+                                .show()
+                        } else
+                            Toast.makeText(context, needsCredentialsText, Toast.LENGTH_SHORT).show()
+                    }) {
+                        Text("Set")
                     }
-                    else
-                        Toast.makeText(context, needsCredentialsText, Toast.LENGTH_SHORT).show()
-                }) {
-                    Text("Set")
+                    Button(onClick = {
+                        if (username.isNotEmpty() && pat.isNotEmpty())
+                            showCredentialRemovalConfirmationState = true
+                    }) {
+                        Text("Reset user info")
+                    }
                 }
             }
         }
@@ -100,5 +114,21 @@ fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
                 }
             }
         })
+    }
+    if (showCredentialRemovalConfirmationState) {
+        AlertDialog(
+            text = { Text ("Are you sure to remove your GitHub account information from this app?") },
+            dismissButton = {
+                Button(onClick = { showCredentialRemovalConfirmationState = false }) { Text("Cancel") }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    AppModel.setGitHubCredentials(context, "", "")
+                    username = ""
+                    pat = ""
+                    showCredentialRemovalConfirmationState = false
+                }) { Text("OK") }
+            },
+            onDismissRequest = { showCredentialRemovalConfirmationState = false })
     }
 }
