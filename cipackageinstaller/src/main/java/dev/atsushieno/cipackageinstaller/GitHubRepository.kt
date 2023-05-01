@@ -47,15 +47,25 @@ class GitHubRepository internal constructor(override val info: GitHubRepositoryI
 
     init {
         val releases = GitHubReleaseApplicationArtifact.createReleases(this, 3)
-        variantsList = if (!AppModel.githubApplicationStore.github.isAnonymous)
-            releases + GitHubArtifactApplicationArtifact(this)
-        else
-            releases
+        // it may or may not exist (regardless of the authentication status)
+        val artifact = if (AppModel.githubApplicationStore.github.isAnonymous) null
+            else GitHubArtifactApplicationArtifact.tryCreate(this)
+
+        variantsList = if (artifact != null) releases + artifact else releases
     }
 }
 
 class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubRepository)
     : GitHubApplicationArtifact(repository) {
+
+    companion object {
+        fun tryCreate(repository: GitHubRepository): GitHubArtifactApplicationArtifact? = try {
+            GitHubArtifactApplicationArtifact(repository)
+        } catch (ex: CIPackageInstallerException) {
+            null
+        }
+    }
+
     private val workflowRun: GHWorkflowRun
     private val artifact: GHArtifact
 

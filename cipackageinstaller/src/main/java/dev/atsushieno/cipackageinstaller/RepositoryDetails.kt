@@ -65,6 +65,10 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
         if (alreadyExists)
             Text("(It is already installed on your system.)", fontSize = 16.sp)
 
+        if (repo.variants.isEmpty()) {
+            Text(text = "There is no available releases.")
+            Text("(Note that there might be build \"artifact\" - they are available only to authenticated users via the GitHub API.)")
+        }
         repo.variants.forEach { variant ->
             Text(variant.typeName, fontSize = 18.sp, textDecoration = TextDecoration.Underline)
             Text(variant.versionId)
