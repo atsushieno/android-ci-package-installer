@@ -1,10 +1,14 @@
 package dev.atsushieno.cipackageinstaller
 
 import android.content.Context
+import android.util.Log
+import okhttp3.Cache
+import okhttp3.OkHttpClient
+import org.apache.commons.io.FileUtils
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
-import org.kohsuke.github.connector.GitHubConnector
-import java.util.Properties
+import org.kohsuke.github.extras.okhttp3.OkHttpGitHubConnector
+
 
 class GitHubRepositoryStore(
     referrer: String
@@ -19,10 +23,30 @@ class GitHubRepositoryStore(
     }
 
     fun updateCredentials(username: String, pat: String) {
-        github = GitHub.connect(username, pat)
+        try {
+            github = GitHubBuilder.fromEnvironment()
+                .withOAuthToken(pat, username)
+                .withConnector(
+                    OkHttpGitHubConnector(
+                        OkHttpClient().newBuilder().cache(cache).build()
+                    )
+                )
+                .build()
+        } catch (e: Exception) {
+            // keep using current github connection
+            // FIXME: there should be some way to notify user that the authentication token is invalid.
+            Log.e(AppModel.LOG_TAG, "GitHub authentication failed. Error details are being dumped.")
+            Log.e(AppModel.LOG_TAG, e.toString())
+        }
     }
 
-    var github: GitHub = GitHub.connectAnonymously()
+    private val cache = Cache(FileUtils.getTempDirectory(), (10 * 1024 * 1024).toLong()) // 10MB cache
+
+    var github: GitHub = connectGitHub()
+
+    private fun connectGitHub() = GitHubBuilder.fromEnvironment()
+        .withConnector(OkHttpGitHubConnector(OkHttpClient().newBuilder().cache(cache).build()))
+        .build()
 
     var githubRepositories = mutableListOf<RepositoryInformation>()
 
