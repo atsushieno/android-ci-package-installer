@@ -14,6 +14,7 @@ class MainActivity : CIPackageInstallerActivity() {
 
         setupApkList()
         AppModel.applicationStore.initialize(this)
+        // FIXME: this should include host app packages by some means
         AppModel.findExistingPackages = { context -> queryInstalledAudioPluginPackages(context) }
     }
 
@@ -69,7 +70,7 @@ class MainActivity : CIPackageInstallerActivity() {
     }
 
     private fun queryInstalledAudioPluginPackages(context: Context, packageNameFilter: String? = null): List<String> {
-        val AAP_ACTION_NAME = "org.androidaudioplugin.AudioPluginService.V2"
+        val AAP_ACTION_NAME = "org.androidaudioplugin.AudioPluginService.V3"
 
         val intent = Intent(AAP_ACTION_NAME)
         if (packageNameFilter != null)
