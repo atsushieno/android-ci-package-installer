@@ -1,5 +1,6 @@
 package dev.atsushieno.cipackageinstaller
 
+import android.content.pm.PackageManager.NameNotFoundException
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -57,6 +58,13 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
         Text("fetching repository details from GitHub...")
     } else {
         Text(repoInfo.name, fontSize = 20.sp)
+
+        // It is not reliable at this moment, because we cannot retrieve reliable list of existing apps.
+        // Therefore we do not use this variable later when we *could* optionally show "uninstall" button.
+        val alreadyExists = AppModel.findExistingPackages(context).contains(repoInfo.packageName)
+        if (alreadyExists)
+            Text("(It is already installed on your system.)", fontSize = 16.sp)
+
         repo.variants.forEach { variant ->
             Text(variant.typeName, fontSize = 18.sp, textDecoration = TextDecoration.Underline)
             Text(variant.versionId)
@@ -64,6 +72,9 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
             Button(onClick = {
                 Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
                     try {
+                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                            Toast.makeText(context, "Downloading ${repoInfo.name} ...", Toast.LENGTH_LONG).show()
+                        }
                         AppModel.performInstallPackage(context, variant)
                     } catch (ex: CIPackageInstallerException) {
                         Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
@@ -73,21 +84,30 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
                     }
                 }
             }) {
-                Text("Download and Install")
+                Text(if (alreadyExists) "Download and Update" else "Download and Install")
             }
-            Button(onClick = {
-                Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-                    try {
-                        AppModel.performUninstallPackage(context, repo)
-                    } catch (ex: CIPackageInstallerException) {
-                        Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
-                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                            Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+            if (!AppModel.isExistingPackageListReliable() || alreadyExists) {
+                Button(onClick = {
+                    Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
+                        try {
+                            Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                                Toast.makeText(
+                                    context,
+                                    "Uninstalling ${repoInfo.name} ...",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            AppModel.performUninstallPackage(context, repo)
+                        } catch (ex: CIPackageInstallerException) {
+                            Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
+                            Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                                Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+                            }
                         }
                     }
+                }) {
+                    Text("Uninstall")
                 }
-            }) {
-                Text("Uninstall")
             }
         }
     }

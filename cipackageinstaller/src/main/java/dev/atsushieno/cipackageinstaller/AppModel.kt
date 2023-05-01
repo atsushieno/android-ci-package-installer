@@ -34,7 +34,7 @@ abstract class ApplicationStore(val referrer: String) {
         override val repositories: List<RepositoryInformation>
             get() = stores.flatMap { repositories }
         override fun initialize(context: Context) {
-            stores.forEach { it.initialize(context) }
+            // in principle this method should not initialize anything, as items in `stores` should have already been initialized.
         }
     }
 
@@ -148,5 +148,11 @@ object AppModel {
 
     var applicationStore: ApplicationStore = githubApplicationStore
 
+    // This method is used to find the relevant packages that are already installed in an explicit way.
+    // (We cannot simply query existing (installed) apps that exposes users privacy.)
+    // Override it to determine which apps are in your installer's targets.
+    // For example, AAP APK Installer targets AudioPluginServices (FIXME: it should also include hosts...).
     var findExistingPackages: (Context) -> List<String> = { listOf() }
+
+    var isExistingPackageListReliable: () -> Boolean = { false }
 }
