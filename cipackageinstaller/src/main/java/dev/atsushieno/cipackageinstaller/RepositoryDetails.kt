@@ -74,11 +74,11 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
             Text(variant.versionId)
             Text(variant.artifactName)
             Button(onClick = {
+                Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                    Toast.makeText(context, "Downloading ${repoInfo.name} ...", Toast.LENGTH_LONG).show()
+                }
                 Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
                     try {
-                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                            Toast.makeText(context, "Downloading ${repoInfo.name} ...", Toast.LENGTH_LONG).show()
-                        }
                         AppModel.performInstallPackage(context, variant)
                     } catch (ex: CIPackageInstallerException) {
                         Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
@@ -92,15 +92,11 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
             }
             if (!AppModel.isExistingPackageListReliable() || alreadyExists) {
                 Button(onClick = {
+                    Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                        Toast.makeText(context, "Uninstalling ${repoInfo.name} ...", Toast.LENGTH_LONG).show()
+                    }
                     Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
                         try {
-                            Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                                Toast.makeText(
-                                    context,
-                                    "Uninstalling ${repoInfo.name} ...",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
                             AppModel.performUninstallPackage(context, repo)
                         } catch (ex: CIPackageInstallerException) {
                             Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)

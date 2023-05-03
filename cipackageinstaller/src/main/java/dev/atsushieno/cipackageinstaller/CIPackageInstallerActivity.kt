@@ -41,6 +41,7 @@ open class CIPackageInstallerActivity : ComponentActivity() {
         }
     }
 
+    /*
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         if (requestCode == REQUEST_INSTALL) {
             if (resultCode == RESULT_OK) {
@@ -93,6 +94,7 @@ open class CIPackageInstallerActivity : ComponentActivity() {
         }
         super.onNewIntent(intent)
     }
+    */
 }
 
 sealed class Routes(val route: String) {

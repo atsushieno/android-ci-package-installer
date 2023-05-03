@@ -17,5 +17,6 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <receiver android:name=".PackageInstallerReceiver" android:exported="false" />
     </application>
 </manifest>

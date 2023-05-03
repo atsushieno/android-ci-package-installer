@@ -1,17 +1,18 @@
 package dev.atsushieno.cipackageinstaller
 
 import android.app.Activity
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.FileUtils
-import android.provider.Settings
-import androidx.core.content.FileProvider
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -44,6 +45,7 @@ abstract class ApplicationStore(val referrer: String) {
 
 object AppModel {
     const val LOG_TAG: String = "CIPackageInstaller"
+    private const val PENDING_INTENT_REQEST_CODE = 1
 
     private const val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
     private const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/android-ci-package-installer"
@@ -93,14 +95,18 @@ object AppModel {
     }
 
     fun performInstallPackage(context: Context, download: ApplicationArtifact) {
-        /*
         val repo = download.repository
         val installer = context.packageManager.packageInstaller
-        val existing = installer.allSessions.firstOrNull { it.appPackageName == repo.info.packageName && it.isActive }
+
+        val existing = installer.mySessions.firstOrNull { it.appPackageName == repo.info.packageName && !it.isActive }
         if (existing != null)
+            // Not sure which is better. So far, avoid multiple attempts.
+            //installer.openSession(existing.sessionId).abandon()
             throw CIPackageInstallerException("Another operation for the package '${repo.info.packageName}' is in progress. Please wait for its completion.")
+
         val params = download.toPackageInstallerSessionParams()
-        val session = installer.openSession(installer.createSession(params))
+        val sessionId = installer.createSession(params)
+        val session = installer.openSession(sessionId)
 
         val file = download.downloadApp()
         val outStream = session.openWrite(file.name, 0, file.length())
@@ -109,14 +115,13 @@ object AppModel {
         session.fsync(outStream)
         outStream.close()
 
-        val intent = Intent(context, context.javaClass)
-        intent.action = CIPackageInstallerActivity.PACKAGE_INSTALLED_ACTION
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_MUTABLE)
-        println("ready to install ${repo.info.appLabel} ...")
+        val intent = Intent(context, PackageInstallerReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQEST_CODE,
+            intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+        Log.d(LOG_TAG, "ready to install ${repo.info.appLabel} ...")
         session.commit(pendingIntent.intentSender)
-        println("committed.")
-        */
+        session.close()
+        /*
         val file = download.downloadApp()
         val intent = Intent(Intent.ACTION_INSTALL_PACKAGE)
         intent.data = FileProvider.getUriForFile(context, context.packageName + FILE_APK_PROVIDER_AUTHORITY_SUFFIX, file)
@@ -133,6 +138,7 @@ object AppModel {
                 Uri.parse(String.format("package:%s", context.packageName))
             context.startActivity(unknownAppSourceIntent)
         }
+        */
     }
     fun performUninstallPackage(context: Context, repo: Repository) {
         val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE)
