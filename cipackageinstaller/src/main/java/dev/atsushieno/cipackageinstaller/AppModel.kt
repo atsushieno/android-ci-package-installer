@@ -1,11 +1,9 @@
 package dev.atsushieno.cipackageinstaller
 
-import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Build
 import android.os.FileUtils
 import android.util.Log
@@ -100,9 +98,9 @@ object AppModel {
 
         val existing = installer.mySessions.firstOrNull { it.appPackageName == repo.info.packageName && !it.isActive }
         if (existing != null)
-            // Not sure which is better. So far, avoid multiple attempts.
-            //installer.openSession(existing.sessionId).abandon()
-            throw CIPackageInstallerException("Another operation for the package '${repo.info.packageName}' is in progress. Please wait for its completion.")
+            // It seems better to abandon existing session and restart than throwing, when we perform install->uninstall->install...
+            installer.openSession(existing.sessionId).abandon()
+            //throw CIPackageInstallerException("Another operation for the package '${repo.info.packageName}' is in progress. Please wait for its completion.")
 
         val params = download.toPackageInstallerSessionParams()
         val sessionId = installer.createSession(params)
@@ -121,32 +119,13 @@ object AppModel {
         Log.d(LOG_TAG, "ready to install ${repo.info.appLabel} ...")
         session.commit(pendingIntent.intentSender)
         session.close()
-        /*
-        val file = download.downloadApp()
-        val intent = Intent(Intent.ACTION_INSTALL_PACKAGE)
-        intent.data = FileProvider.getUriForFile(context, context.packageName + FILE_APK_PROVIDER_AUTHORITY_SUFFIX, file)
-        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-        intent.putExtra(Intent.EXTRA_RETURN_RESULT, true)
-        intent.putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, context.applicationInfo.packageName)
-
-        (context as Activity).startActivity(intent)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
-            val unknownAppSourceIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
-            unknownAppSourceIntent.data =
-                Uri.parse(String.format("package:%s", context.packageName))
-            context.startActivity(unknownAppSourceIntent)
-        }
-        */
     }
     fun performUninstallPackage(context: Context, repo: Repository) {
-        val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE)
-        intent.data = Uri.parse(
-            "package:${repo.info.packageName}"
-        )
-        intent.putExtra(Intent.EXTRA_RETURN_RESULT, true)
-        (context as Activity).startActivityForResult(intent, CIPackageInstallerActivity.REQUEST_UNINSTALL)
+        val installer = context.packageManager.packageInstaller
+        val intent = Intent(context, PackageInstallerReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQEST_CODE,
+            intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+        installer.uninstall(repo.info.packageName, pendingIntent.intentSender)
     }
 
     // provide access to GitHub specific properties such as `guthubRepositories`

@@ -1,9 +1,6 @@
 package dev.atsushieno.cipackageinstaller
 
-import android.content.Intent
-import android.content.pm.PackageInstaller
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,12 +17,6 @@ import dev.atsushieno.cipackageinstaller.ui.theme.CIPackageInstallerTheme
 
 
 open class CIPackageInstallerActivity : ComponentActivity() {
-    companion object {
-        const val PACKAGE_INSTALLED_ACTION = "dev.atsushieno.cipackageinstaller.SESSION_API_PACKAGE_INSTALLED"
-        const val REQUEST_INSTALL = 1
-        const val REQUEST_UNINSTALL = 2
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -40,61 +31,6 @@ open class CIPackageInstallerActivity : ComponentActivity() {
             }
         }
     }
-
-    /*
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        if (requestCode == REQUEST_INSTALL) {
-            if (resultCode == RESULT_OK) {
-                Toast.makeText(this, "Install succeeded!", Toast.LENGTH_SHORT).show()
-            } else if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(this, "Install canceled!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Install Failed!", Toast.LENGTH_SHORT).show()
-            }
-        } else if (requestCode == REQUEST_UNINSTALL) {
-            if (resultCode == RESULT_OK) {
-                Toast.makeText(this, "Uninstall succeeded!", Toast.LENGTH_SHORT).show()
-            } else if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(this, "Uninstall canceled!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Uninstall Failed!", Toast.LENGTH_SHORT).show()
-            }
-        }
-        else
-            super.onActivityResult(requestCode, resultCode, intent)
-    }
-    override fun onNewIntent(intent: Intent?) {
-        if (intent != null) {
-            if (intent.action == PACKAGE_INSTALLED_ACTION) {
-                val extras = intent.extras!!
-                val status = extras.getInt(PackageInstaller.EXTRA_STATUS)
-                val message = extras.getString(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                when (status) {
-                    PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                        // This test app isn't privileged, so the user has to confirm the install.
-                        startActivity(extras.get(Intent.EXTRA_INTENT) as Intent)
-                    }
-                    PackageInstaller.STATUS_SUCCESS -> Toast.makeText(
-                        this,
-                        "Install succeeded!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    PackageInstaller.STATUS_FAILURE, PackageInstaller.STATUS_FAILURE_ABORTED, PackageInstaller.STATUS_FAILURE_BLOCKED, PackageInstaller.STATUS_FAILURE_CONFLICT, PackageInstaller.STATUS_FAILURE_INCOMPATIBLE, PackageInstaller.STATUS_FAILURE_INVALID, PackageInstaller.STATUS_FAILURE_STORAGE -> Toast.makeText(
-                        this, "Install failed! [$status] $message",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    else -> Toast.makeText(
-                        this, "Unrecognized status received from installer: [$status] $message",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-        super.onNewIntent(intent)
-    }
-    */
 }
 
 sealed class Routes(val route: String) {
