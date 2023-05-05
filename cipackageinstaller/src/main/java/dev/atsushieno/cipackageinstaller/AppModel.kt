@@ -1,9 +1,12 @@
 package dev.atsushieno.cipackageinstaller
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageInstaller
+import android.icu.util.ULocale
 import android.os.Build
 import android.os.FileUtils
 import android.util.Log
@@ -44,9 +47,12 @@ abstract class ApplicationStore(val referrer: String) {
 object AppModel {
     const val LOG_TAG: String = "CIPackageInstaller"
     private const val PENDING_INTENT_REQEST_CODE = 1
+    private const val PENDING_PREAPPROVAL_REQUEST_CODE = 2
 
     private const val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
     private const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/android-ci-package-installer"
+
+    val preApprovalEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || Build.VERSION.CODENAME == "UpsideDownCake"
 
     private fun createSharedPreferences(context: Context) : SharedPreferences {
         val masterKey = MasterKey.Builder(context)
@@ -92,6 +98,7 @@ object AppModel {
         }
     }
 
+    @SuppressLint("NewApi")
     fun performInstallPackage(context: Context, download: ApplicationArtifact) {
         val repo = download.repository
         val installer = context.packageManager.packageInstaller
@@ -105,6 +112,18 @@ object AppModel {
         val params = download.toPackageInstallerSessionParams()
         val sessionId = installer.createSession(params)
         val session = installer.openSession(sessionId)
+
+        if (preApprovalEnabled) {
+            val preapprovalIntent = Intent(context, PreapprovalReceiver::class.java)
+            val preapprovalPendingIntent = PendingIntent.getBroadcast(context,
+                PENDING_PREAPPROVAL_REQUEST_CODE, preapprovalIntent, PendingIntent.FLAG_MUTABLE)
+            val preapproval = PackageInstaller.PreapprovalDetails.Builder()
+                .setPackageName(repo.info.packageName)
+                .setLabel(repo.info.appLabel)
+                .setLocale(ULocale.getDefault())
+                .build()
+            session.requestUserPreapproval(preapproval, preapprovalPendingIntent.intentSender)
+        }
 
         val file = download.downloadApp()
         val outStream = session.openWrite(file.name, 0, file.length())
@@ -120,6 +139,7 @@ object AppModel {
         session.commit(pendingIntent.intentSender)
         session.close()
     }
+
     fun performUninstallPackage(context: Context, repo: Repository) {
         val installer = context.packageManager.packageInstaller
         val intent = Intent(context, PackageInstallerReceiver::class.java)

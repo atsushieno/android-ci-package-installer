@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.ENFORCE_UPDATE_OWNERSHIP" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
 
@@ -18,5 +19,6 @@
         </provider>
 
         <receiver android:name=".PackageInstallerReceiver" android:exported="false" />
+        <receiver android:name=".PreapprovalReceiver" android:exported="false" />
     </application>
 </manifest>

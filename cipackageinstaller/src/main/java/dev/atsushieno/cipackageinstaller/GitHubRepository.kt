@@ -1,5 +1,6 @@
 package dev.atsushieno.cipackageinstaller
 
+import android.annotation.SuppressLint
 import android.content.pm.PackageInstaller
 import android.graphics.Bitmap
 import android.net.Uri
@@ -188,6 +189,7 @@ internal constructor(repository: GitHubRepository,
 abstract class GitHubApplicationArtifact internal constructor(override val repository: GitHubRepository)
     : ApplicationArtifact(repository) {
 
+    @SuppressLint("NewApi")
     override fun toPackageInstallerSessionParams() : PackageInstaller.SessionParams {
         val info = repository.info
         val p = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
@@ -196,10 +198,13 @@ abstract class GitHubApplicationArtifact internal constructor(override val repos
         p.setOriginatingUri(Uri.parse("https://github.com/${info.account}/${info.repository}/"))
         p.setReferrerUri(Uri.parse(info.owner.referrer))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            p.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED)
+            p.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             p.setPackageSource(PackageInstaller.PACKAGE_SOURCE_OTHER)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || Build.VERSION.CODENAME == "UpsideDownCake") {
+            p.setRequestUpdateOwnership(true)
         }
         return p
     }
