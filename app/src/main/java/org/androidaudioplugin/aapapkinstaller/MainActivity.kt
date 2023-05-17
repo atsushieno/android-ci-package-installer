@@ -66,6 +66,10 @@ class MainActivity : CIPackageInstallerActivity() {
                 "org.androidaudioplugin.ports.juce.frequalizer", "AAP Frequalizer"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-juce-byod",
                 "org.androidaudioplugin.ports.juce.byod", "AAP BYOD"),
+            GitHubRepositoryInformation(store, "atsushieno", "aap-juce-xenos",
+                "org.androidaudioplugin.ports.juce.xenos", "AAP Xenos"),
+            GitHubRepositoryInformation(store, "atsushieno", "aap-juce-ddsp",
+                "org.androidaudioplugin.ports.juce.ddsp_vst", "AAP DDSP-VST"),
         ))
     }
 
