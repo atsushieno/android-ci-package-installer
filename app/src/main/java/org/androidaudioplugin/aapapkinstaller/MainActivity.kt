@@ -36,6 +36,8 @@ class MainActivity : CIPackageInstallerActivity() {
                 "org.androidaudioplugin.ports.lv2.dragonfly_reverb", "AAP Dragonfly Reverb"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-lv2-string-machine",
                 "org.androidaudioplugin.ports.lv2.string_machine", "AAP String Machine"),
+            GitHubRepositoryInformation(store, "atsushieno", "aap-lv2-aida-x",
+                "org.androidaudioplugin.ports.lv2.aida_x", "AAP AIDA-X"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-juce-plugin-host",
                 "org.androidaudioplugin.ports.juce.audiopluginhost", "AAP AudioPluginHost"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-juce-simple-host",
@@ -70,6 +72,8 @@ class MainActivity : CIPackageInstallerActivity() {
                 "org.androidaudioplugin.ports.juce.xenos", "AAP Xenos"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-juce-ddsp",
                 "org.androidaudioplugin.ports.juce.ddsp_vst", "AAP DDSP-VST"),
+            GitHubRepositoryInformation(store, "atsushieno", "aap-juce-surge",
+                "org.androidaudioplugin.ports.juce.surge", "AAP Surge-XT"),
         ))
     }
 
