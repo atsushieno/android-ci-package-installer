@@ -24,6 +24,8 @@ class MainActivity : CIPackageInstallerActivity() {
         store.githubRepositories.addAll(listOf(
             GitHubRepositoryInformation(store, "atsushieno", "android-ci-package-installer",
                 "org.androidaudioplugin.aapapkinstaller", "AAP APK Installer"),
+            GitHubRepositoryInformation(store, "atsushieno", "resident-midi-keyboard",
+                "org.androidaudioplugin.resident_midi_keyboard", "Resident MIDI Keyboard"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-lv2-mda",
                 "org.androidaudioplugin.ports.lv2.mda_lv2", "AAP MDA-LV2"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-lv2-sfizz",
