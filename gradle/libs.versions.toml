@@ -1,0 +1,24 @@
+[versions]
+activity-compose = "1.7.2"
+androidx-junit = "1.1.5"
+core-ktx = "1.10.1"
+espresso-core = "3.5.1"
+github-api = "1.315"
+junit = "4.13.2"
+lifecycle-runtime-ktx = "2.6.1"
+navigation-compose = "2.6.0"
+security-crypto = "1.1.0-alpha06"
+
+[libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
+androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso-core" }
+androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-junit" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "security-crypto" }
+github-api = { module = "org.kohsuke:github-api", version.ref = "github-api" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+
