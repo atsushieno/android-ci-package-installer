@@ -7,9 +7,9 @@ android {
     namespace 'dev.atsushieno.cipackageinstaller'
     compileSdkPreview "UpsideDownCake"
 
+    compileSdk 34
     defaultConfig {
         minSdk 21
-        targetSdk 33
     }
 
     buildTypes {
@@ -29,7 +29,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.3'
+        kotlinCompilerExtensionVersion libs.versions.compose.get()
     }
 }
 
@@ -39,13 +39,13 @@ dependencies {
     implementation libs.androidx.security.crypto
     implementation libs.androidx.lifecycle.runtime.ktx
     implementation libs.androidx.activity.compose
-    implementation platform('androidx.compose:compose-bom:2023.06.01')
+    implementation platform(libs.compose.bom)
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.ui:ui-graphics'
     implementation 'androidx.compose.ui:ui-tooling-preview'
     implementation 'androidx.compose.material3:material3'
     implementation libs.androidx.navigation.compose
-    implementation platform('com.squareup.okhttp3:okhttp-bom:4.10.0')
+    implementation platform(libs.okhttp.bom)
     implementation 'com.squareup.okhttp3:okhttp'
     implementation libs.github.api
 
