@@ -16,7 +16,7 @@ Not [Firebase Testing](https://firebase.google.com/docs/app-distribution/android
 
 [DeployGate](https://deploygate.com/?locale=en) offers simple and straightforward test app distribution that I love as a user (also it is run by friends), but the free tier offers 2 apps at most where we have 20+ (not sure if aggregated management is doable there either). So not for the individual plugins apps.
 
-But we do indeed use DeployGate to distribute *this* application. You can find it at: https://dply.me/vl8vfr (you have to install DeployGate app first though).
+But we do indeed use DeployGate to distribute *this* application. You can find it at: [https://dply.me/vl8vfr](https://deploygate.com/organizations/atsushieno/platforms/android/apps/org.androidaudioplugin.aapapkinstaller) (you have to install DeployGate app first though).
 
 ## How to use it as a library
 
