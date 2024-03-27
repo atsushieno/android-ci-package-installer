@@ -98,7 +98,6 @@ object AppModel {
         }
     }
 
-    @SuppressLint("NewApi")
     fun performInstallPackage(context: Context, download: ApplicationArtifact) {
         val repo = download.repository
         val installer = context.packageManager.packageInstaller

@@ -5,20 +5,13 @@ import android.content.pm.PackageInstaller
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
-import androidx.core.net.toFile
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.kohsuke.github.GHApp
 import org.kohsuke.github.GHArtifact
 import org.kohsuke.github.GHAsset
-import org.kohsuke.github.GHBlob
 import org.kohsuke.github.GHEvent
 import org.kohsuke.github.GHRelease
 import org.kohsuke.github.GHWorkflowRun
-import org.kohsuke.github.GitHub
-import org.kohsuke.github.GitHubRequest
-import org.kohsuke.github.extras.HttpClientGitHubConnector
 import java.io.File
 import java.util.zip.ZipFile
 

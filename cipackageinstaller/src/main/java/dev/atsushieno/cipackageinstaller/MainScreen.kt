@@ -27,7 +27,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
     val needsUserInfoText = "To get pre-release APKs, set GitHub username and PAT"

@@ -12,7 +12,7 @@ class PreapprovalReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, -37564)) {
             PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                val i = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+                val i = intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)
                     ?: throw java.lang.IllegalStateException("No extra intent found")
                 context.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }

@@ -40,9 +40,15 @@ class GitHubRepositoryStore(
         }
     }
 
-    private val cache = Cache(FileUtils.getTempDirectory(), (10 * 1024 * 1024).toLong()) // 10MB cache
+    private val cache = Cache(FileUtils.getTempDirectory(), (100 * 1024 * 1024).toLong()) // 100MB cache
 
-    var github: GitHub = connectGitHub()
+    private var gh: GitHub? = null
+    var github: GitHub
+        get() {
+            gh = gh ?: connectGitHub()
+            return gh!!
+        }
+        set(value) { gh = value }
 
     private fun connectGitHub() = GitHubBuilder.fromEnvironment()
         .withConnector(OkHttpGitHubConnector(OkHttpClient().newBuilder().cache(cache).build()))
