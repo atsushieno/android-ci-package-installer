@@ -76,6 +76,8 @@ class MainActivity : CIPackageInstallerActivity() {
                 "org.androidaudioplugin.ports.juce.ddsp_vst", "AAP DDSP-VST"),
             GitHubRepositoryInformation(store, "atsushieno", "aap-juce-surge",
                 "org.androidaudioplugin.ports.juce.surge", "AAP Surge-XT"),
+            GitHubRepositoryInformation(store, "atsushieno", "aap-juce-audible-planets",
+                "org.androidaudioplugin.ports.juce.audibleplanets", "AAP Audible Planets"),
         ))
     }
 
