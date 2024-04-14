@@ -25,7 +25,7 @@ class GitHubRepositoryStore(
     fun updateCredentials(username: String, pat: String) {
         try {
             github = GitHubBuilder.fromEnvironment()
-                .withOAuthToken(pat, username)
+                .withOAuthToken(pat.trim(), username.trim())
                 .withConnector(
                     OkHttpGitHubConnector(
                         OkHttpClient().newBuilder().cache(cache).build()
