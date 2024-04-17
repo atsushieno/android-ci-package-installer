@@ -4,9 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import dev.atsushieno.cipackageinstaller.AppModel
-import dev.atsushieno.cipackageinstaller.CIPackageInstallerActivity
+import dev.atsushieno.cipackageinstaller.ui.view.CIPackageInstallerActivity
 import dev.atsushieno.cipackageinstaller.GitHubRepositoryInformation
-import dev.atsushieno.cipackageinstaller.GitHubRepositoryStore
 
 class MainActivity : CIPackageInstallerActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

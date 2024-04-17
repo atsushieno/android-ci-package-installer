@@ -4,9 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
-import android.os.Build
 import android.util.Log
-import java.lang.RuntimeException
 
 class PackageInstallerReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

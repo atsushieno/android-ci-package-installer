@@ -1,7 +1,7 @@
 [versions]
 activity-compose = "1.8.2"
 androidx-junit = "1.1.5"
-compose-bom = "2024.03.00"
+compose-bom = "2024.04.00"
 core-ktx = "1.12.0"
 espresso-core = "3.5.1"
 github-api = "1.321"

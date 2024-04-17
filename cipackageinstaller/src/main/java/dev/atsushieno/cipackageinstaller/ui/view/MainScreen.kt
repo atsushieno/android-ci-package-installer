@@ -1,4 +1,4 @@
-package dev.atsushieno.cipackageinstaller
+package dev.atsushieno.cipackageinstaller.ui.view
 
 import android.widget.Toast
 import androidx.compose.foundation.border
@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -26,6 +25,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.atsushieno.cipackageinstaller.AppModel
 
 @Composable
 fun MainScreen(onItemClicked: (repo: Int) -> Unit) {

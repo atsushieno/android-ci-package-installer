@@ -1,4 +1,4 @@
-package dev.atsushieno.cipackageinstaller
+package dev.atsushieno.cipackageinstaller.ui.view
 
 import android.icu.text.DecimalFormat
 import android.os.Build
@@ -21,6 +21,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import dev.atsushieno.cipackageinstaller.AppModel
+import dev.atsushieno.cipackageinstaller.CIPackageInstallerException
+import dev.atsushieno.cipackageinstaller.Repository
 import kotlinx.coroutines.Dispatchers
 
 @Composable
