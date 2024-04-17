@@ -5,8 +5,6 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -87,7 +85,7 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
                 }
                 Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
                     try {
-                        AppModel.performInstallPackage(context, variant)
+                        AppModel.performDownloadAndInstallation(context, variant)
                     } catch (ex: CIPackageInstallerException) {
                         Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
                         Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {

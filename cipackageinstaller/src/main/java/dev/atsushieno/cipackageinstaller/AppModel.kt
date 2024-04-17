@@ -1,6 +1,5 @@
 package dev.atsushieno.cipackageinstaller
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -46,7 +45,7 @@ abstract class ApplicationStore(val referrer: String) {
 
 object AppModel {
     const val LOG_TAG: String = "CIPackageInstaller"
-    private const val PENDING_INTENT_REQEST_CODE = 1
+    private const val PENDING_INTENT_REQUEST_CODE = 1
     private const val PENDING_PREAPPROVAL_REQUEST_CODE = 2
 
     private const val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
@@ -98,20 +97,22 @@ object AppModel {
         }
     }
 
-    fun performInstallPackage(context: Context, download: ApplicationArtifact) {
+    // Process permissions and then download and launch pending installation intent
+    // (that may involve user interaction).
+    fun performDownloadAndInstallation(context: Context, download: ApplicationArtifact) {
         val repo = download.repository
         val installer = context.packageManager.packageInstaller
 
         val existing = installer.mySessions.firstOrNull { it.appPackageName == repo.info.packageName && !it.isActive }
         if (existing != null)
-            // It seems better to abandon existing session and restart than throwing, when we perform install->uninstall->install...
+            // abandon existing session and restart than throwing, when we perform install->uninstall->install...
             installer.openSession(existing.sessionId).abandon()
-            //throw CIPackageInstallerException("Another operation for the package '${repo.info.packageName}' is in progress. Please wait for its completion.")
 
         val params = download.toPackageInstallerSessionParams()
         val sessionId = installer.createSession(params)
         val session = installer.openSession(sessionId)
 
+        // Pre-approval is available only in Android 14 or later.
         if (preApprovalEnabled) {
             val preapprovalIntent = Intent(context, PreapprovalReceiver::class.java)
             val preapprovalPendingIntent = PendingIntent.getBroadcast(context,
@@ -132,7 +133,7 @@ object AppModel {
         outStream.close()
 
         val intent = Intent(context, PackageInstallerReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQEST_CODE,
+        val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQUEST_CODE,
             intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
         Log.d(LOG_TAG, "ready to install ${repo.info.appLabel} ...")
         session.commit(pendingIntent.intentSender)
@@ -142,7 +143,7 @@ object AppModel {
     fun performUninstallPackage(context: Context, repo: Repository) {
         val installer = context.packageManager.packageInstaller
         val intent = Intent(context, PackageInstallerReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQEST_CODE,
+        val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQUEST_CODE,
             intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
         installer.uninstall(repo.info.packageName, pendingIntent.intentSender)
     }

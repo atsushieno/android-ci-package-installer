@@ -5,6 +5,7 @@ import android.content.pm.PackageInstaller
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.kohsuke.github.GHArtifact
@@ -88,7 +89,7 @@ class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubR
             if (entry != null) {
                 val tmpAppFile = File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk or aab
 
-                println("Downloading ${entry.name} ...")
+                Log.d(AppModel.LOG_TAG, "Downloading ${entry.name} ...")
                 val inAppStream = zipFile.getInputStream(entry)
                 AppModel.copyStream(inAppStream, tmpAppFile)
                 if (!tmpAppFile.exists() || tmpAppFile.length() != entry.size)
@@ -116,18 +117,7 @@ class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubR
                 .firstOrNull { r -> r.listArtifacts().toArray().any { a -> !a.isExpired } }
                 ?: throw CIPackageInstallerException("GitHub repository $repoName does not have any workflow runs yet")
         workflowRun = run
-
-        println("---- Workflow Run ----")
-        println(run.headCommit.id)
-        println(run.url)
-
         artifact = run.listArtifacts().toArray().first()
-
-        println("---- artifact ----")
-        println(artifact.name)
-        println(artifact.createdAt)
-        println(artifact.sizeInBytes)
-        println(artifact.archiveDownloadUrl)
     }
 }
 
