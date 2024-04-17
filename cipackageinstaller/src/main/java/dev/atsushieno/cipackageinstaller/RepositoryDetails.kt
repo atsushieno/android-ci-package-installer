@@ -1,13 +1,15 @@
 package dev.atsushieno.cipackageinstaller
 
-import android.content.pm.PackageManager.NameNotFoundException
+import android.icu.text.DecimalFormat
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,25 +19,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.coroutineContext
 
 @Composable
 fun RepositoryDetails(navController: NavController, index: Int) {
-    Column {
-        RepositoryDetailsBody(navController, index)
+    Column(Modifier.verticalScroll(rememberScrollState())) {
+        RepositoryDetailsContent(navController = navController, index)
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.N)
+private val decimalFormat = DecimalFormat.getInstance()
+private fun formatLong(value: Long) =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        decimalFormat.format(value.toBigDecimal())
+    else
+        value.toString()
+
 @Composable
-fun RepositoryDetailsBody(navController: NavController, index: Int) {
+fun RepositoryDetailsContent(navController: NavController, index: Int) {
     val context = LocalContext.current
 
     val repoInfo = AppModel.applicationStore.repositories[index]
@@ -61,7 +67,8 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
 
         // It is not reliable at this moment, because we cannot retrieve reliable list of existing apps.
         // Therefore we do not use this variable later when we *could* optionally show "uninstall" button.
-        val alreadyExists = AppModel.findExistingPackages(context).contains(repoInfo.packageName)
+        val alreadyExists =
+            AppModel.findExistingPackages(context).contains(repoInfo.packageName)
         if (alreadyExists)
             Text("(It is already installed on your system.)", fontSize = 16.sp)
 
@@ -72,6 +79,7 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
         repo.variants.forEach { variant ->
             Text(variant.typeName, fontSize = 18.sp, textDecoration = TextDecoration.Underline)
             Text(variant.versionId)
+            Text("${formatLong(variant.artifactSizeInBytes)} bytes")
             Text(variant.artifactName)
             Button(onClick = {
                 Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
@@ -93,7 +101,11 @@ fun RepositoryDetailsBody(navController: NavController, index: Int) {
             if (!AppModel.isExistingPackageListReliable() || alreadyExists) {
                 Button(onClick = {
                     Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                        Toast.makeText(context, "Uninstalling ${repoInfo.name} ...", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            context,
+                            "Uninstalling ${repoInfo.name} ...",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                     Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
                         try {

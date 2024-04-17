@@ -25,4 +25,5 @@ abstract class ApplicationArtifact(open val repository: Repository) {
     abstract val typeName: String
     abstract val artifactName: String
     abstract val versionId: String
+    abstract val artifactSizeInBytes: Long
 }

@@ -70,7 +70,7 @@ class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubR
         get() = "${artifact.name} (workflow #${workflowRun.runNumber})"
 
     override val versionId: String
-        get() = workflowRun.headCommit.id
+        get() = workflowRun.headCommit.id.substring(0, 7)
 
     override val artifactSizeInBytes: Long
         get() = artifact.sizeInBytes
@@ -201,8 +201,6 @@ abstract class GitHubApplicationArtifact internal constructor(override val repos
         }
         return p
     }
-
-    abstract val artifactSizeInBytes: Long
 }
 
 @Suppress("unused")
