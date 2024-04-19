@@ -17,32 +17,6 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 
-abstract class ApplicationStore {
-    companion object {
-        val empty = EmptyApplicationStore()
-    }
-
-    class EmptyApplicationStore : ApplicationStore() {
-        override val repositories: List<RepositoryInformation> = listOf()
-        override fun initialize(context: Context) {}
-    }
-
-    class MergedApplicationStore() : ApplicationStore() {
-
-        // Note that after call to initialize() on this class itself, any added store must be initialized before being added to this list.
-        val stores = mutableListOf<ApplicationStore>()
-
-        override val repositories: List<RepositoryInformation>
-            get() = stores.flatMap { repositories }
-        override fun initialize(context: Context) {
-            // in principle this method should not initialize anything, as items in `stores` should have already been initialized.
-        }
-    }
-
-    abstract val repositories: List<RepositoryInformation>
-    abstract fun initialize(context: Context)
-}
-
 val AppModel by lazy { AppModelFactory.create() }
 
 abstract class ApplicationModel {
@@ -55,7 +29,7 @@ abstract class ApplicationModel {
     abstract val installerSessionReferrer: String
 
     // it is made overridable
-    open val applicationStore: ApplicationStore
+    open val applicationStore: RepositoryCatalogProvider
         get() = githubApplicationStore
 
     val preApprovalEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || Build.VERSION.CODENAME == "UpsideDownCake"
@@ -70,11 +44,11 @@ abstract class ApplicationModel {
     }
 
     // FIXME: it is too tied to GitHub. We should provide somewhat more generic way to provide credentials to other stores.
-    fun getGitHubCredentials(context: Context) : GitHubRepositoryStore.GitHubCredentials {
+    fun getGitHubCredentials(context: Context) : GitHubRepositoryCatalogProvider.GitHubCredentials {
         val sp = createSharedPreferences(context)
         val user = sp.getString("GITHUB_USER", "") ?: ""
         val pat = sp.getString("GITHUB_PAT", "") ?: ""
-        return GitHubRepositoryStore.GitHubCredentials(user, pat)
+        return GitHubRepositoryCatalogProvider.GitHubCredentials(user, pat)
     }
 
     // FIXME: it is too tied to GitHub. We should provide somewhat more generic way to provide credentials to other stores.
@@ -158,7 +132,7 @@ abstract class ApplicationModel {
     }
 
     // provide access to GitHub specific properties such as `guthubRepositories`
-    val githubApplicationStore  by lazy { GitHubRepositoryStore() }
+    val githubApplicationStore  by lazy { GitHubRepositoryCatalogProvider() }
 
     // This method is used to find the relevant packages that are already installed in an explicit way.
     // (We cannot simply query existing (installed) apps that exposes users privacy.)

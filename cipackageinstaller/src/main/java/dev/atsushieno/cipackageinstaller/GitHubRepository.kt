@@ -17,7 +17,7 @@ import java.io.File
 import java.util.zip.ZipFile
 
 class GitHubRepositoryInformation(
-    val owner: GitHubRepositoryStore,
+    val owner: GitHubRepositoryCatalogProvider,
     val account: String,
     val repository: String,
     override val packageName: String,
