@@ -10,9 +10,7 @@ import org.kohsuke.github.GitHubBuilder
 import org.kohsuke.github.extras.okhttp3.OkHttpGitHubConnector
 
 
-class GitHubRepositoryStore(
-    referrer: String
-) : ApplicationStore(referrer) {
+class GitHubRepositoryStore : ApplicationStore() {
 
     data class GitHubCredentials(val username: String, val pat: String)
 

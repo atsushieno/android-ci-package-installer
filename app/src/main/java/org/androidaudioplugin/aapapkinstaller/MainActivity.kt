@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import dev.atsushieno.cipackageinstaller.AppModel
+import dev.atsushieno.cipackageinstaller.AppModelFactory
+import dev.atsushieno.cipackageinstaller.ApplicationModel
 import dev.atsushieno.cipackageinstaller.ui.view.CIPackageInstallerActivity
 import dev.atsushieno.cipackageinstaller.GitHubRepositoryInformation
 
@@ -88,5 +90,14 @@ class MainActivity : CIPackageInstallerActivity() {
             intent.setPackage(packageNameFilter)
         return context.packageManager.queryIntentServices(intent, 0).map { it.serviceInfo.packageName }
             .distinct()
+    }
+
+    init {
+        AppModelFactory.create = { object: ApplicationModel() {
+            // They are specific to my app.
+            // Replace them with your own if you want to reuse cipackageinstaller package as a library.
+            override val LOG_TAG = "AAPAPKInstaller"
+            override val installerSessionReferrer = "https://github.com/atsushieno/android-ci-package-installer"
+        } }
     }
 }

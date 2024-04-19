@@ -2,15 +2,15 @@
 
 ![AAP APK Installer sshot](./docs/images/aap-ci-package-installer.png)
 
-It started as a project started as my AAP APK Installer, and now it also works as a reusable application installer library.
+It started as my Audio Plugins APK Installer, and now it also works as a reusable application installer library.
 
 [AAP (Audio Plugins For Android)](https://github.com/atsushieno/aap-core) is an (experimental) audio plugins framework for Android that comes with [various audio plugins](https://github.com/atsushieno/aap-core/wiki/List-of-AAP-plugins-and-hosts) as Android apps. Since it is annoying to install all those packages to a new device or emulator (for development) one by one using Android Studio, we want to have a simpler plugin "installer" application. **AAP APK Installer** is created for this purpose. It is like [Native Instrument's Native Access](https://www.native-instruments.com/en/specials/native-access-2/).
 
-All what it does is to download the target APKs or AABs from our dedicated list and install them, and the core functionality is generalized to support *any* set of GitHub repositories that provide APKs or AABs by anyone. Therefore, a generalized **Android CI Package Installer** is split to an independent AAR so that anyone can reuse this installer utility.
+All what it does is to download the target APKs from our dedicated list and install them, and the core functionality is generalized to support *any* set of GitHub repositories that provide APKs or AABs by anyone. Therefore, a generalized **Android CI Package Installer** is split to an independent AAR so that anyone can reuse this installer utility.
 
 ## More on Rationale
 
-We need something to facilitate testing existing audio plugins to provide easier access to experience the AAP ecosystem. Or, we sometimes need to demonstrate or "show off" what the current state of union is like, often on a dedicated "demo devices". Since we already have 20~ish audio plugin APKs and it's going to grow, it makes more sense to provide easier way to install those plugins, rather than going to each project to download an APK and install manually for 20+ repos.
+We need something that facilitates testing existing audio plugins to provide easier access to experience the AAP ecosystem. Or, we sometimes need to demonstrate or "show off" what the current state of union is like, often on a dedicated "demo devices". Since we already have 20~ish audio plugin APKs and it's going to grow, it makes more sense to provide easier way to install those plugins, rather than going to each project to download an APK and install manually for 20+ repos.
 
 Not [Firebase Testing](https://firebase.google.com/docs/app-distribution/android/distribute-gradle)? It is possible to distribute testing APKs and probably tooling works, but looks like we have to create one app per apk / repo, which is quite annoying to manage. We may use it for individual development, but not for this particular need.
 
@@ -20,7 +20,12 @@ But we do indeed use DeployGate to distribute *this* application. You can find i
 
 ## How to use it as a library
 
-[The `app` project](https://github.com/atsushieno/android-ci-package-installer/blob/main/app/) is the sources for AAP APK Installer. It fills the AAP specific parts of the installer application (`MainActivity.kt` and `AndroidManifest.xml`). There is no Maven package yet, so just add your own project to your checkout and adjust your `settings.gradle` to include the library.
+[The `app` project](https://github.com/atsushieno/android-ci-package-installer/blob/main/app/) is the sources for AAP APK Installer. It fills the AAP specific parts of the installer application (`MainActivity.kt` and `AndroidManifest.xml`).
+
+Note that you will have to initialize `AppModelFactory.create` lambda variable to create your own `ApplicationModel` object that sets some properties that should be specific to your project. Otherwise `TODO()` occurs.
+
+There is no Maven package yet, so just add your own project to your checkout and adjust your `settings.gradle` to include the library.
+
 
 ## Limitations (and/or, Rooms for Improvements)
 

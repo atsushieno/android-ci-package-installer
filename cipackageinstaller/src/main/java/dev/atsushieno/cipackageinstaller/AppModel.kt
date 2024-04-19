@@ -17,17 +17,17 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 
-abstract class ApplicationStore(val referrer: String) {
+abstract class ApplicationStore {
     companion object {
         val empty = EmptyApplicationStore()
     }
 
-    class EmptyApplicationStore : ApplicationStore("") {
+    class EmptyApplicationStore : ApplicationStore() {
         override val repositories: List<RepositoryInformation> = listOf()
         override fun initialize(context: Context) {}
     }
 
-    class MergedApplicationStore(referrer: String) : ApplicationStore(referrer) {
+    class MergedApplicationStore() : ApplicationStore() {
 
         // Note that after call to initialize() on this class itself, any added store must be initialized before being added to this list.
         val stores = mutableListOf<ApplicationStore>()
@@ -43,13 +43,20 @@ abstract class ApplicationStore(val referrer: String) {
     abstract fun initialize(context: Context)
 }
 
-object AppModel {
-    const val LOG_TAG: String = "CIPackageInstaller"
-    private const val PENDING_INTENT_REQUEST_CODE = 1
-    private const val PENDING_PREAPPROVAL_REQUEST_CODE = 2
+val AppModel by lazy { AppModelFactory.create() }
 
-    private const val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
-    private const val GITHUB_REPOSITORY_REFERRER = "https://github.com/atsushieno/android-ci-package-installer"
+abstract class ApplicationModel {
+    companion object {
+        private const val PENDING_INTENT_REQUEST_CODE = 1
+        private const val PENDING_PREAPPROVAL_REQUEST_CODE = 2
+        private const val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
+    }
+    abstract val LOG_TAG: String
+    abstract val installerSessionReferrer: String
+
+    // it is made overridable
+    open val applicationStore: ApplicationStore
+        get() = githubApplicationStore
 
     val preApprovalEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || Build.VERSION.CODENAME == "UpsideDownCake"
 
@@ -62,6 +69,7 @@ object AppModel {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
     }
 
+    // FIXME: it is too tied to GitHub. We should provide somewhat more generic way to provide credentials to other stores.
     fun getGitHubCredentials(context: Context) : GitHubRepositoryStore.GitHubCredentials {
         val sp = createSharedPreferences(context)
         val user = sp.getString("GITHUB_USER", "") ?: ""
@@ -69,6 +77,7 @@ object AppModel {
         return GitHubRepositoryStore.GitHubCredentials(user, pat)
     }
 
+    // FIXME: it is too tied to GitHub. We should provide somewhat more generic way to provide credentials to other stores.
     fun setGitHubCredentials(context: Context, username: String, pat: String) {
         val sp = createSharedPreferences(context)
         val edit = sp.edit()
@@ -149,9 +158,7 @@ object AppModel {
     }
 
     // provide access to GitHub specific properties such as `guthubRepositories`
-    val githubApplicationStore = GitHubRepositoryStore(GITHUB_REPOSITORY_REFERRER)
-
-    var applicationStore: ApplicationStore = githubApplicationStore
+    val githubApplicationStore  by lazy { GitHubRepositoryStore() }
 
     // This method is used to find the relevant packages that are already installed in an explicit way.
     // (We cannot simply query existing (installed) apps that exposes users privacy.)
@@ -160,4 +167,8 @@ object AppModel {
     var findExistingPackages: (Context) -> List<String> = { listOf() }
 
     var isExistingPackageListReliable: () -> Boolean = { false }
+}
+
+object AppModelFactory {
+    var create: () -> ApplicationModel = { TODO("It must be declared by each application") }
 }

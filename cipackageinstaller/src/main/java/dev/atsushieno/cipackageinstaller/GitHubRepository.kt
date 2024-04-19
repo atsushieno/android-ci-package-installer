@@ -179,7 +179,7 @@ abstract class GitHubApplicationArtifact internal constructor(override val repos
         p.setAppPackageName(info.packageName)
         p.setAppLabel(info.appLabel)
         p.setOriginatingUri(Uri.parse("https://github.com/${info.account}/${info.repository}/"))
-        p.setReferrerUri(Uri.parse(info.owner.referrer))
+        p.setReferrerUri(Uri.parse(AppModel.installerSessionReferrer))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             p.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
         }
