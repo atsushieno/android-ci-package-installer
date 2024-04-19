@@ -29,67 +29,8 @@ import dev.atsushieno.cipackageinstaller.AppModel
 
 @Composable
 fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
-    val needsUserInfoText = "To get pre-release APKs, set GitHub username and PAT"
-    val alreadyHasUserInfText = "To change GitHub account setup, tap here"
-    val credentialsAreSetText = "Username and PAT are set!"
-    val needsCredentialsText = "Specify username and PAT"
-
-    val context = LocalContext.current
-    val githubCredentials = AppModel.getGitHubCredentials(context)
-    var username by remember { mutableStateOf(githubCredentials.username) }
-    var pat by remember { mutableStateOf(githubCredentials.pat) }
-    val hasGitHubCredentials = username.isNotEmpty() && pat.isNotEmpty()
-    var toggleGitHubAccountState by remember { mutableStateOf(!hasGitHubCredentials) }
-    val descriptionText = if (hasGitHubCredentials) alreadyHasUserInfText else needsUserInfoText
-    var showCredentialRemovalConfirmationState by remember { mutableStateOf(false) }
-
     Column {
-        Column(modifier = Modifier.border(2.dp, color = Color.Gray)) {
-            Row(modifier = Modifier
-                .padding(4.dp)
-                .clickable { toggleGitHubAccountState = !toggleGitHubAccountState }) {
-                Text(descriptionText)
-            }
-            if (toggleGitHubAccountState) {
-                var isPasswordVisible by remember { mutableStateOf(false) }
-                Text("GitHub Username:")
-                Row {
-                    Text(" ", modifier = Modifier.defaultMinSize(30.dp))
-                    TextField(value = username, singleLine = true, onValueChange = { v: String -> username = v })
-                }
-                Text("Personal Access Token:")
-                Row {
-                    // see-no-evil monkey vs. monkey
-                    Text(text = if (isPasswordVisible) "\uD83D\uDC35" else "\uD83D\uDE48", modifier = Modifier
-                        .clickable { isPasswordVisible = !isPasswordVisible }
-                        .defaultMinSize(30.dp))
-                    TextField(
-                        value = pat, singleLine = true, onValueChange = { v: String -> pat = v },
-                        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
-                }
-                Row {
-                    Button(onClick = {
-                        if (username.isNotEmpty() && pat.isNotEmpty()) {
-                            AppModel.setGitHubCredentials(context, username, pat)
-                            toggleGitHubAccountState = false
-                            Toast.makeText(context, credentialsAreSetText, Toast.LENGTH_SHORT)
-                                .show()
-                        } else
-                            Toast.makeText(context, needsCredentialsText, Toast.LENGTH_SHORT).show()
-                    }) {
-                        Text("Set")
-                    }
-                    Button(onClick = {
-                        if (username.isNotEmpty() && pat.isNotEmpty())
-                            showCredentialRemovalConfirmationState = true
-                    }) {
-                        Text("Reset user info")
-                    }
-                }
-            }
-        }
+        GitHubUserCredentialsConfigUI()
         LazyColumn(content = {
             AppModel.applicationStore.repositories.forEachIndexed { index, repo ->
                 item {
@@ -106,6 +47,72 @@ fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
                 }
             }
         })
+    }
+}
+
+@Composable
+fun GitHubUserCredentialsConfigUI() {
+    val context = LocalContext.current
+
+    val needsUserInfoText = "To get pre-release APKs, set GitHub username and PAT"
+    val alreadyHasUserInfText = "To change GitHub account setup, tap here"
+    val credentialsAreSetText = "Username and PAT are set!"
+    val needsCredentialsText = "Specify username and PAT"
+
+    val githubCredentials = AppModel.getGitHubCredentials(context)
+    var username by remember { mutableStateOf(githubCredentials.username) }
+    var pat by remember { mutableStateOf(githubCredentials.pat) }
+
+    val hasGitHubCredentials = username.isNotEmpty() && pat.isNotEmpty()
+    var toggleGitHubAccountState by remember { mutableStateOf(!hasGitHubCredentials) }
+    val descriptionText = if (hasGitHubCredentials) alreadyHasUserInfText else needsUserInfoText
+    var showCredentialRemovalConfirmationState by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.border(2.dp, color = Color.Gray)) {
+        Row(modifier = Modifier
+            .padding(4.dp)
+            .clickable { toggleGitHubAccountState = !toggleGitHubAccountState }) {
+            Text(descriptionText)
+        }
+        if (toggleGitHubAccountState) {
+            var isPasswordVisible by remember { mutableStateOf(false) }
+            Text("GitHub Username:")
+            Row {
+                Text(" ", modifier = Modifier.defaultMinSize(30.dp))
+                TextField(value = username, singleLine = true, onValueChange = { v: String -> username = v })
+            }
+            Text("Personal Access Token:")
+            Row {
+                // see-no-evil monkey vs. monkey
+                Text(text = if (isPasswordVisible) "\uD83D\uDC35" else "\uD83D\uDE48", modifier = Modifier
+                    .clickable { isPasswordVisible = !isPasswordVisible }
+                    .defaultMinSize(30.dp))
+                TextField(
+                    value = pat, singleLine = true, onValueChange = { v: String -> pat = v },
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(0.95f)
+                )
+            }
+            Row {
+                Button(onClick = {
+                    if (username.isNotEmpty() && pat.isNotEmpty()) {
+                        AppModel.setGitHubCredentials(context, username, pat)
+                        toggleGitHubAccountState = false
+                        Toast.makeText(context, credentialsAreSetText, Toast.LENGTH_SHORT)
+                            .show()
+                    } else
+                        Toast.makeText(context, needsCredentialsText, Toast.LENGTH_SHORT).show()
+                }) {
+                    Text("Set")
+                }
+                Button(onClick = {
+                    if (username.isNotEmpty() && pat.isNotEmpty())
+                        showCredentialRemovalConfirmationState = true
+                }) {
+                    Text("Reset user info")
+                }
+            }
+        }
     }
     if (showCredentialRemovalConfirmationState) {
         AlertDialog(
