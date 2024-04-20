@@ -7,8 +7,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.core.graphics.drawable.IconCompat
 
-open class CIPackageInstallerActivity : ComponentActivity() {
+abstract class CIPackageInstallerActivity : ComponentActivity() {
+    companion object {
+        var mainActivityClass: Class<*>? = null
+        lateinit var notificationIcon: IconCompat
+    }
+    init {
+        mainActivityClass = this::class.java
+    }
+
+    abstract fun createNotificationIcon(): IconCompat
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

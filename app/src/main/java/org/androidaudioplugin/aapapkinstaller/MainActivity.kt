@@ -3,6 +3,7 @@ package org.androidaudioplugin.aapapkinstaller
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.core.graphics.drawable.IconCompat
 import dev.atsushieno.cipackageinstaller.AppModel
 import dev.atsushieno.cipackageinstaller.AppModelFactory
 import dev.atsushieno.cipackageinstaller.ApplicationModel
@@ -13,11 +14,15 @@ class MainActivity : CIPackageInstallerActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        notificationIcon = createNotificationIcon()
         setupApkList()
         AppModel.applicationStore.initialize(this)
         // FIXME: this should include host app packages by some means
         AppModel.findExistingPackages = { context -> queryInstalledAudioPluginPackages(context) }
     }
+
+    override fun createNotificationIcon(): IconCompat =
+        IconCompat.createWithResource(this, R.drawable.ic_launcher_foreground)
 
     @Suppress("SpellCheckingInspection")
     private fun setupApkList() {
