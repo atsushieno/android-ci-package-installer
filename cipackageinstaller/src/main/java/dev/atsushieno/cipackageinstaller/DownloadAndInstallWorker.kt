@@ -10,10 +10,10 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import java.io.FileInputStream
 
-class InstallWorker(context: Context, parameters: WorkerParameters)
+class DownloadAndInstallWorker(context: Context, parameters: WorkerParameters)
     : Worker(context, parameters) {
     companion object {
-        const val WORK_NAME = "InstallWorker"
+        const val WORK_NAME = "CIPackageInstallWorker"
         const val INPUT_DATA_ARTIFACT_TYPE = "artifactType"
         const val INPUT_DATA_DOWNLOAD = "download"
         private const val PENDING_INTENT_REQUEST_CODE = 1
@@ -71,6 +71,8 @@ class InstallWorker(context: Context, parameters: WorkerParameters)
         }
 
         Log.d(LOG_TAG, "start downloading ${repo.info.appLabel} ...")
+
+        setForegroundAsync(DownloadStatusNotificationManager.createForegroundInfo(context))
         val file = download.downloadApp()
         Log.d(LOG_TAG, "completed downloading ${repo.info.appLabel}")
         val outStream = session.openWrite(file.name, 0, file.length())

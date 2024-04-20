@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation(libs.androidx.navigation.compose)
     implementation(project(":cipackageinstaller"))
+    implementation(libs.androidx.startup.runtime)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

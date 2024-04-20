@@ -19,6 +19,7 @@ composeCompilerPlugin = "1.5.12"
 workRuntimeKtx = "2.9.0"
 accompanist-permissions = "0.32.0"
 lifecycleService = "2.7.0"
+startupRuntime = "1.1.1"
 
 
 [libraries]
@@ -48,6 +49,7 @@ junit = { module = "junit:junit", version.ref = "junit" }
 ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycleService" }
+androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "startupRuntime" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

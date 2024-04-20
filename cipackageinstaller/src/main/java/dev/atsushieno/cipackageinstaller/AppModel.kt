@@ -81,10 +81,10 @@ abstract class ApplicationModel {
     // Process permissions and then download and launch pending installation intent
     // (that may involve user interaction).
     fun performDownloadAndInstallation(context: Context, download: ApplicationArtifact) {
-        val request = OneTimeWorkRequestBuilder<InstallWorker>()
+        val request = OneTimeWorkRequestBuilder<DownloadAndInstallWorker>()
             .setInputData(workDataOf(
-                InstallWorker.INPUT_DATA_ARTIFACT_TYPE to download.articactInfoType,
-                InstallWorker.INPUT_DATA_DOWNLOAD to download.serializeToString()))
+                DownloadAndInstallWorker.INPUT_DATA_ARTIFACT_TYPE to download.articactInfoType,
+                DownloadAndInstallWorker.INPUT_DATA_DOWNLOAD to download.serializeToString()))
             .build()
         WorkManager.getInstance(context).enqueue(request)
     }

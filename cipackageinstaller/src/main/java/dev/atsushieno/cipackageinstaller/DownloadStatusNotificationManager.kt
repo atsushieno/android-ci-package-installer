@@ -3,6 +3,7 @@ package dev.atsushieno.cipackageinstaller
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.content.pm.ShortcutInfo
 import android.os.Build
 import androidx.core.app.NotificationChannelCompat
@@ -12,16 +13,15 @@ import androidx.work.ForegroundInfo
 import dev.atsushieno.cipackageinstaller.ui.view.CIPackageInstallerActivity
 import kotlin.random.Random
 
-private const val bubbleRequestCode = 0 // FIXME: manage them
-private const val bubbleShortLabel = "FIXME-shortLabel"
-private const val mainRequestCode = 1 // FIXME: manage them
-private const val category = "FIXME-com.example.category.IMG_SHARE_TARGET"
-private const val CHANNEL_ID = "FIXME-CHANNEL_ID"
-private val notificationId = Random.nextInt() // FIXME: manage them
+object DownloadStatusNotificationManager {
+    private const val bubbleRequestCode = 0 // FIXME: manage them
+    private const val bubbleShortLabel = "FIXME-shortLabel"
+    private const val mainRequestCode = 1 // FIXME: manage them
+    private const val category = "FIXME-com.example.category.IMG_SHARE_TARGET"
+    private val notificationId = Random.nextInt() // FIXME: manage them
+    val shortcutId = "FIXME-shortcutId"
 
-class DownloadStatusNotificationManager(private val context: Context) {
-
-    fun createForegroundInfo(): ForegroundInfo {
+    fun createForegroundInfo(context: Context): ForegroundInfo {
         val notificationChannelId = javaClass.name
 
         val channel = NotificationChannelCompat.Builder(
@@ -38,7 +38,6 @@ class DownloadStatusNotificationManager(private val context: Context) {
             PendingIntent.getActivity(context, bubbleRequestCode, target, PendingIntent.FLAG_IMMUTABLE)
 
         // Create a sharing shortcut.
-        val shortcutId = "FIXME-shortcutId"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             val shortcutBuilder = ShortcutInfo.Builder(context, shortcutId)
                 .setCategories(setOf(category))
@@ -59,13 +58,18 @@ class DownloadStatusNotificationManager(private val context: Context) {
             .build()
 
         // Create a notification, referencing the sharing shortcut.
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            //.setSmallIcon(smallIcon)
+        val builder = NotificationCompat.Builder(context, notificationChannelId)
             .setBubbleMetadata(bubbleData)
             .setShortcutId(shortcutId)
             .setOnlyAlertOnce(true)
+            .setContentInfo("TEST")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            builder.setSmallIcon(CIPackageInstallerActivity.notificationIcon)
         val notification = builder.build()
 
-        return ForegroundInfo(notificationId, notification)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            ForegroundInfo(notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        else
+            ForegroundInfo(notificationId, notification)
     }
 }
