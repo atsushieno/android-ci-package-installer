@@ -1,6 +1,5 @@
 package dev.atsushieno.cipackageinstaller
 
-import android.annotation.SuppressLint
 import android.content.pm.PackageInstaller
 import android.graphics.Bitmap
 import android.net.Uri
@@ -40,6 +39,24 @@ class GitHubRepository internal constructor(override val info: GitHubRepositoryI
     override val variants: List<ApplicationArtifact>
         get() = variantsList
 
+    override fun getPackageInstallerSessionParams(download: ApplicationArtifact) : PackageInstaller.SessionParams {
+        val p = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
+        p.setAppPackageName(info.packageName)
+        p.setAppLabel(info.appLabel)
+        p.setOriginatingUri(Uri.parse("https://github.com/${info.account}/${info.repository}/"))
+        p.setReferrerUri(Uri.parse(AppModel.installerSessionReferrer))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            p.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            p.setPackageSource(PackageInstaller.PACKAGE_SOURCE_OTHER)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            p.setRequestUpdateOwnership(true)
+        }
+        return p
+    }
+
     init {
         val releases = GitHubReleaseApplicationArtifact.createReleases(this, 3)
         // it may or may not exist (regardless of the authentication status)
@@ -51,7 +68,7 @@ class GitHubRepository internal constructor(override val info: GitHubRepositoryI
 }
 
 class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubRepository)
-    : GitHubApplicationArtifact(repository) {
+    : ApplicationArtifact(repository) {
 
     companion object {
         fun tryCreate(repository: GitHubRepository): GitHubArtifactApplicationArtifact? = try {
@@ -96,7 +113,7 @@ class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubR
                     throw CIPackageInstallerException("Artifact uncompressed size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")
                 return tmpAppFile
             } else
-                throw CIPackageInstallerException("... app entry in the artifact not found at run $artifactName for ${repository.repoName}")
+                throw CIPackageInstallerException("... app entry in the artifact not found at run $artifactName for ${repository.info.name}")
         } finally {
             tmpZipFile.delete()
         }
@@ -125,7 +142,7 @@ class GitHubReleaseApplicationArtifact
 internal constructor(repository: GitHubRepository,
                      private val release: GHRelease,
                      private val asset: GHAsset)
-    : GitHubApplicationArtifact(repository) {
+    : ApplicationArtifact(repository) {
 
     companion object {
         fun createReleases(repository: GitHubRepository, count: Int) : List<GitHubReleaseApplicationArtifact> {
@@ -167,35 +184,4 @@ internal constructor(repository: GitHubRepository,
 
     override val versionId: String
         get() = release.tagName
-}
-
-abstract class GitHubApplicationArtifact internal constructor(override val repository: GitHubRepository)
-    : ApplicationArtifact(repository) {
-
-    @SuppressLint("NewApi")
-    override fun toPackageInstallerSessionParams() : PackageInstaller.SessionParams {
-        val info = repository.info
-        val p = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
-        p.setAppPackageName(info.packageName)
-        p.setAppLabel(info.appLabel)
-        p.setOriginatingUri(Uri.parse("https://github.com/${info.account}/${info.repository}/"))
-        p.setReferrerUri(Uri.parse(AppModel.installerSessionReferrer))
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            p.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            p.setPackageSource(PackageInstaller.PACKAGE_SOURCE_OTHER)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || Build.VERSION.CODENAME == "UpsideDownCake") {
-            p.setRequestUpdateOwnership(true)
-        }
-        return p
-    }
-}
-
-@Suppress("unused")
-class CIPackageInstallerException : Exception {
-    constructor() : this("CIPackageInstallerException occurred")
-    constructor(message: String) : this (message, null)
-    constructor(message: String, innerException: Exception?) : super(message, innerException)
 }

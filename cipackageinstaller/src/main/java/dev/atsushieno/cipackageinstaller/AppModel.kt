@@ -23,7 +23,6 @@ abstract class ApplicationModel {
     companion object {
         private const val PENDING_INTENT_REQUEST_CODE = 1
         private const val PENDING_PREAPPROVAL_REQUEST_CODE = 2
-        private const val FILE_APK_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
     }
     abstract val LOG_TAG: String
     abstract val installerSessionReferrer: String
@@ -91,7 +90,7 @@ abstract class ApplicationModel {
             // abandon existing session and restart than throwing, when we perform install->uninstall->install...
             installer.openSession(existing.sessionId).abandon()
 
-        val params = download.toPackageInstallerSessionParams()
+        val params = repo.getPackageInstallerSessionParams(download)
         val sessionId = installer.createSession(params)
         val session = installer.openSession(sessionId)
 
