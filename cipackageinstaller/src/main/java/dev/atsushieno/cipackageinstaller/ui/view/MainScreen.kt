@@ -31,6 +31,7 @@ import dev.atsushieno.cipackageinstaller.AppModel
 fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
     Column {
         GitHubUserCredentialsConfigUI()
+        PermissionRequester()
         LazyColumn(content = {
             AppModel.applicationStore.repositories.forEachIndexed { index, repo ->
                 item {
@@ -131,3 +132,4 @@ fun GitHubUserCredentialsConfigUI() {
             onDismissRequest = { showCredentialRemovalConfirmationState = false })
     }
 }
+
