@@ -4,15 +4,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageInstaller
-import android.icu.util.ULocale
 import android.os.Build
 import android.os.FileUtils
-import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -67,7 +66,7 @@ abstract class ApplicationModel {
         outFS.close()
     }
 
-    private fun copyStream(inFS: InputStream, outFS: OutputStream) {
+    fun copyStream(inFS: InputStream, outFS: OutputStream) {
         val bytes = ByteArray(4096)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             FileUtils.copy(inFS, outFS)
@@ -82,44 +81,12 @@ abstract class ApplicationModel {
     // Process permissions and then download and launch pending installation intent
     // (that may involve user interaction).
     fun performDownloadAndInstallation(context: Context, download: ApplicationArtifact) {
-        val repo = download.repository
-        val installer = context.packageManager.packageInstaller
-
-        val existing = installer.mySessions.firstOrNull { it.appPackageName == repo.info.packageName && !it.isActive }
-        if (existing != null)
-            // abandon existing session and restart than throwing, when we perform install->uninstall->install...
-            installer.openSession(existing.sessionId).abandon()
-
-        val params = repo.getPackageInstallerSessionParams(download)
-        val sessionId = installer.createSession(params)
-        val session = installer.openSession(sessionId)
-
-        // Pre-approval is available only in Android 14 or later.
-        if (preApprovalEnabled) {
-            val preapprovalIntent = Intent(context, PreapprovalReceiver::class.java)
-            val preapprovalPendingIntent = PendingIntent.getBroadcast(context,
-                PENDING_PREAPPROVAL_REQUEST_CODE, preapprovalIntent, PendingIntent.FLAG_MUTABLE)
-            val preapproval = PackageInstaller.PreapprovalDetails.Builder()
-                .setPackageName(repo.info.packageName)
-                .setLabel(repo.info.appLabel)
-                .setLocale(ULocale.getDefault())
-                .build()
-            session.requestUserPreapproval(preapproval, preapprovalPendingIntent.intentSender)
-        }
-
-        val file = download.downloadApp()
-        val outStream = session.openWrite(file.name, 0, file.length())
-        val inStream = FileInputStream(file)
-        copyStream(inStream, outStream)
-        session.fsync(outStream)
-        outStream.close()
-
-        val intent = Intent(context, PackageInstallerReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQUEST_CODE,
-            intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
-        Log.d(LOG_TAG, "ready to install ${repo.info.appLabel} ...")
-        session.commit(pendingIntent.intentSender)
-        session.close()
+        val request = OneTimeWorkRequestBuilder<InstallWorker>()
+            .setInputData(workDataOf(
+                InstallWorker.INPUT_DATA_ARTIFACT_TYPE to download.articactInfoType,
+                InstallWorker.INPUT_DATA_DOWNLOAD to download.serializeToString()))
+            .build()
+        WorkManager.getInstance(context).enqueue(request)
     }
 
     fun performUninstallPackage(context: Context, repo: Repository) {

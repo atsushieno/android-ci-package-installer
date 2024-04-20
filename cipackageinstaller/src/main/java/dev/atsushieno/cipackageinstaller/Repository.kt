@@ -2,7 +2,6 @@ package dev.atsushieno.cipackageinstaller
 
 import android.content.pm.PackageInstaller
 import android.graphics.Bitmap
-import java.io.File
 
 abstract class RepositoryInformation {
     abstract val name: String
@@ -19,11 +18,3 @@ abstract class Repository(open val info: RepositoryInformation) {
     abstract fun getPackageInstallerSessionParams(artifact: ApplicationArtifact) : PackageInstaller.SessionParams
 }
 
-abstract class ApplicationArtifact(open val repository: Repository) {
-    abstract fun downloadApp(): File
-
-    abstract val typeName: String
-    abstract val artifactName: String
-    abstract val versionId: String
-    abstract val artifactSizeInBytes: Long
-}

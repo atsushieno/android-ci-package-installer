@@ -5,6 +5,9 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.kohsuke.github.GHArtifact
@@ -16,7 +19,6 @@ import java.io.File
 import java.util.zip.ZipFile
 
 class GitHubRepositoryInformation(
-    val owner: GitHubRepositoryCatalogProvider,
     val account: String,
     val repository: String,
     override val packageName: String,
@@ -67,19 +69,34 @@ class GitHubRepository internal constructor(override val info: GitHubRepositoryI
     }
 }
 
-class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubRepository)
-    : ApplicationArtifact(repository) {
+@Serializable
+data class GitHubLatestWorkflowRunArtifactInfo(val account: String, val repository: String, val packageName: String, val appLabel: String, val workflowRunId: Long, val artifactId: Long)
 
+class GitHubArtifactApplicationArtifact internal constructor(
+    private val workflowRun: GHWorkflowRun,
+    private val artifact: GHArtifact,
+    repository: GitHubRepository
+) : ApplicationArtifact(repository) {
     companion object {
         fun tryCreate(repository: GitHubRepository): GitHubArtifactApplicationArtifact? = try {
-            GitHubArtifactApplicationArtifact(repository)
+            val repoName = repository.repoName
+            val repoData = AppModel.githubApplicationStore.github.getRepository(repoName)
+
+            val workflowRun =
+                repoData.queryWorkflowRuns()
+                    .branch("main")
+                    .event(GHEvent.PUSH)
+                    .status(GHWorkflowRun.Status.COMPLETED)
+                    .list()
+                    .filter { r -> r.conclusion == GHWorkflowRun.Conclusion.SUCCESS }
+                    .firstOrNull { r -> r.listArtifacts().toArray().any { a -> !a.isExpired } }
+                    ?: throw CIPackageInstallerException("GitHub repository $repoName does not have any workflow runs yet")
+            val artifact = workflowRun.listArtifacts().toArray().first()
+            GitHubArtifactApplicationArtifact(workflowRun, artifact, repository)
         } catch (ex: CIPackageInstallerException) {
             null
         }
     }
-
-    private val workflowRun: GHWorkflowRun
-    private val artifact: GHArtifact
 
     override val typeName: String
         get() = "Latest GitHub Actions Artifact"
@@ -119,24 +136,17 @@ class GitHubArtifactApplicationArtifact internal constructor(repository: GitHubR
         }
     }
 
-    init {
-        val info = repository.info
-        val repoName = repository.repoName
-        val repoData = info.owner.github.getRepository(repoName)
+    override val articactInfoType: String = GitHubLatestWorkflowRunArtifactInfo::class.java.name
 
-        val run =
-            repoData.queryWorkflowRuns()
-                .branch("main")
-                .event(GHEvent.PUSH)
-                .status(GHWorkflowRun.Status.COMPLETED)
-                .list()
-                .filter { r -> r.conclusion == GHWorkflowRun.Conclusion.SUCCESS }
-                .firstOrNull { r -> r.listArtifacts().toArray().any { a -> !a.isExpired } }
-                ?: throw CIPackageInstallerException("GitHub repository $repoName does not have any workflow runs yet")
-        workflowRun = run
-        artifact = run.listArtifacts().toArray().first()
+    override fun serializeToString(): String {
+        val info = repository.info as GitHubRepositoryInformation
+        val artifactInfo = GitHubLatestWorkflowRunArtifactInfo(info.account, info.repository, info.packageName, info.appLabel, workflowRun.id, artifact.id)
+        return Json.encodeToString(artifactInfo)
     }
 }
+
+@Serializable
+class GitHubReleaseApplicationArtifactInfo(val account: String, val repository: String, val packageName: String, val appLabel: String, val releaseTag: String)
 
 class GitHubReleaseApplicationArtifact
 internal constructor(repository: GitHubRepository,
@@ -145,19 +155,25 @@ internal constructor(repository: GitHubRepository,
     : ApplicationArtifact(repository) {
 
     companion object {
+        private fun getAsset(release: GHRelease) =
+            release.listAssets()?.firstOrNull { it.name.endsWith(".apk") || it.name.endsWith(".aab") }
+
         fun createReleases(repository: GitHubRepository, count: Int) : List<GitHubReleaseApplicationArtifact> {
-            val info = repository.info
-            val repoData = info.owner.github.getRepository(repository.repoName)
+            val repoData = AppModel.githubApplicationStore.github.getRepository(repository.repoName)
 
             return repoData.listReleases().map { release ->
-                Pair(release,
-                    release.listAssets()
-                        ?.firstOrNull { it.name.endsWith(".apk") || it.name.endsWith(".aab") })
+                Pair(release, getAsset(release))
             }
                 .filter { it.second != null }.take(count)
                 .map {
                     GitHubReleaseApplicationArtifact(repository, it.first, it.second!!)
                 }
+        }
+
+        fun tryCreate(repository: GitHubRepository, releaseTag: String): ApplicationArtifact {
+            val repoData = AppModel.githubApplicationStore.github.getRepository(repository.repoName)
+            val release = repoData.getReleaseByTagName(releaseTag)
+            return GitHubReleaseApplicationArtifact(repository, release, getAsset(release) ?: throw CIPackageInstallerException("Specified release ${release.name} for ${repository.repoName} does not contain an expected application package."))
         }
     }
 
@@ -184,4 +200,12 @@ internal constructor(repository: GitHubRepository,
 
     override val versionId: String
         get() = release.tagName
+
+    override val articactInfoType: String = GitHubReleaseApplicationArtifactInfo::class.java.name
+
+    override fun serializeToString(): String {
+        val info = repository.info as GitHubRepositoryInformation
+        val artifactInfo = GitHubReleaseApplicationArtifactInfo(info.account, info.repository, info.packageName, info.appLabel, release.tagName)
+        return Json.encodeToString(artifactInfo)
+    }
 }
