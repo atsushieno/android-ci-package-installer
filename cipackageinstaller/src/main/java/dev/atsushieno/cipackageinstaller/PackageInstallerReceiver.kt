@@ -23,7 +23,7 @@ class PackageInstallerReceiver : BroadcastReceiver() {
             }
             else -> {
                 val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                Log.e(AppModel.LOG_TAG, "Installation result: $message")
+                AppModel.logger.logError("Installation result: $message")
                 val sessionId = intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, 0)
                 if (sessionId > 0) {
                     try {
@@ -34,9 +34,7 @@ class PackageInstallerReceiver : BroadcastReceiver() {
                             context.packageManager.packageInstaller.abandonSession(sessionId)
                     } catch (ex: RuntimeException) {
                         // otherwise, "java.lang.SecurityException: Caller has no access to session"
-                        Log.e(AppModel.LOG_TAG,
-                            "Attempt to abandon the session $sessionId caused an exception: $ex.message"
-                        )
+                        AppModel.logger.logError("Attempt to abandon the session $sessionId caused an exception: ${ex.message}", ex)
                     }
                 }
             }

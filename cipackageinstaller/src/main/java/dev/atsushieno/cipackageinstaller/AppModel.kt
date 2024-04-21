@@ -107,6 +107,8 @@ abstract class ApplicationModel {
     var findExistingPackages: (Context) -> List<String> = { listOf() }
 
     var isExistingPackageListReliable: () -> Boolean = { false }
+
+    val logger = Logger()
 }
 
 object AppModelFactory {

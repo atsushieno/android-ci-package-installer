@@ -32,6 +32,7 @@ fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
     Column {
         GitHubUserCredentialsConfigUI()
         PermissionRequester()
+        OperationLogViewer()
         LazyColumn(content = {
             AppModel.applicationStore.repositories.forEachIndexed { index, repo ->
                 item {
@@ -48,6 +49,35 @@ fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
                 }
             }
         })
+    }
+}
+
+@Composable
+fun OperationLogViewer() {
+    val hasSomeLogText = "There are some operation logs, tap to view"
+
+    val logs = remember { AppModel.logger.logs }
+
+    if (logs.isEmpty())
+        return
+
+    var toggleViewerState by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.border(2.dp, color = Color.Gray)) {
+        Row(modifier = Modifier
+            .padding(4.dp)
+            .clickable { toggleViewerState = !toggleViewerState }) {
+            Text(hasSomeLogText)
+        }
+        if (toggleViewerState) {
+            LazyColumn {
+                items(logs.size) { index ->
+                    val entry = logs[index]
+                    if (entry.artifact != null)
+                        Text(entry.artifact.artifactName, fontSize = 12.sp)
+                    Text(entry.text)
+                }
+            }
+        }
     }
 }
 

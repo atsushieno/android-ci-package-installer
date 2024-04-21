@@ -17,11 +17,12 @@ class PreapprovalReceiver : BroadcastReceiver() {
                 context.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
             PackageInstaller.STATUS_SUCCESS -> {
-                Log.d(AppModel.LOG_TAG, "Preapproval succeeded!")
+                Log.d(AppModel.LOG_TAG, "Preapproval succeeded")
             }
             else -> {
                 val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                Log.e(AppModel.LOG_TAG, "Preapproval result: $message")
+                val details = intent.getParcelableExtra(PackageInstaller.EXTRA_PRE_APPROVAL, PackageInstaller.PreapprovalDetails::class.java)
+                AppModel.logger.logError("Preapproval failed: $message (${details?.packageName}")
             }
         }
     }

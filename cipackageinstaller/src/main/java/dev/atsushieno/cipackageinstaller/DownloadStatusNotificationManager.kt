@@ -35,7 +35,7 @@ object DownloadStatusNotificationManager {
 
         val target = Intent(context, CIPackageInstallerActivity.mainActivityClass)
         val bubbleIntent =
-            PendingIntent.getActivity(context, bubbleRequestCode, target, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(context, bubbleRequestCode, target, PendingIntent.FLAG_MUTABLE)
 
         // Create a sharing shortcut.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {

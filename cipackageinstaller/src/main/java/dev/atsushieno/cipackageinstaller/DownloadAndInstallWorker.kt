@@ -36,7 +36,7 @@ class DownloadAndInstallWorker(context: Context, parameters: WorkerParameters)
             downloadAndInstall()
             return Result.success()
         } catch (ex: Exception) {
-            Log.e(LOG_TAG, ex.toString())
+            Log.e(LOG_TAG, "DownloadAndInstallWorker failed: $ex")
             return Result.failure()
         }
     }
@@ -88,6 +88,6 @@ class DownloadAndInstallWorker(context: Context, parameters: WorkerParameters)
         session.commit(pendingIntent.intentSender)
         session.close()
 
-        Log.d(LOG_TAG, "InstallWorker completed for ${repo.info.appLabel}")
+        Log.i(LOG_TAG, "InstallWorker completed for ${repo.info.appLabel}")
     }
 }

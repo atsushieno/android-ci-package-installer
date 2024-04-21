@@ -32,9 +32,7 @@ class GitHubRepositoryCatalogProvider : RepositoryCatalogProvider() {
                 .build()
         } catch (e: Exception) {
             // keep using current github connection
-            // FIXME: there should be some way to notify user that the authentication token is invalid.
-            Log.e(AppModel.LOG_TAG, "GitHub authentication failed. Error details are being dumped.")
-            Log.e(AppModel.LOG_TAG, e.toString())
+            AppModel.logger.logError("GitHub authentication failed: ${e.message}", e)
         }
     }
 

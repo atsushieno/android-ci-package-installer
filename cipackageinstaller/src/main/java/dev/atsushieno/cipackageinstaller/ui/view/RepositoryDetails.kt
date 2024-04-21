@@ -55,7 +55,7 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
             try {
                 repoState = repoInfo.createRepository()
             } catch (ex: CIPackageInstallerException) {
-                Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
+                AppModel.logger.logError("Failed to retrieve repository data: ${ex.message}", ex)
                 Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
                     navController.navigate(Routes.Home.route) { popUpTo(Routes.Home.route) }
                     Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
@@ -87,14 +87,7 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
                     Toast.makeText(context, "Downloading ${repoInfo.name} ...", Toast.LENGTH_LONG).show()
                 }
                 Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-                    try {
-                        AppModel.performDownloadAndInstallation(context, variant)
-                    } catch (ex: CIPackageInstallerException) {
-                        Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
-                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                            Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-                        }
-                    }
+                    AppModel.performDownloadAndInstallation(context, variant)
                 }
             }) {
                 Text(if (alreadyExists) "Download and Update" else "Download and Install")
@@ -112,7 +105,8 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
                         try {
                             AppModel.performUninstallPackage(context, repo)
                         } catch (ex: CIPackageInstallerException) {
-                            Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data", ex)
+                            AppModel.logger.logError("Failed to retrieve repository data: ${ex.message}", ex)
+                            Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data: $ex")
                             Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
                                 Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
                             }
