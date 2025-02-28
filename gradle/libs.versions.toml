@@ -1,25 +1,25 @@
 [versions]
-androidCompileSdk = "34"
-androidTargetSdk = "34"
+androidCompileSdk = "35"
+androidTargetSdk = "35"
 androidMinSdk = "21"
-kotlin = "1.9.23"
-agp = "8.3.2"
-activity-compose = "1.9.0"
-androidx-junit = "1.1.5"
-compose-bom = "2024.04.01"
-core-ktx = "1.13.0"
-espresso-core = "3.5.1"
+kotlin = "2.0.21"
+agp = "8.8.2"
+activity-compose = "1.10.1"
+androidx-junit = "1.2.1"
+compose-bom = "2025.02.00"
+core-ktx = "1.15.0"
+espresso-core = "3.6.1"
 github-api = "1.321"
 junit = "4.13.2"
-kotlinxSerializationJson = "1.6.3"
-lifecycle-runtime-ktx = "2.7.0"
-navigation-compose = "2.7.7"
+kotlinxSerializationJson = "1.8.0"
+lifecycle-runtime-ktx = "2.8.7"
+navigation-compose = "2.8.8"
 security-crypto = "1.1.0-alpha06"
 composeCompilerPlugin = "1.5.12"
-workRuntimeKtx = "2.9.0"
+workRuntimeKtx = "2.10.0"
 accompanist-permissions = "0.32.0"
-lifecycleService = "2.7.0"
-startupRuntime = "1.1.1"
+lifecycleService = "2.8.7"
+startupRuntime = "1.2.0"
 
 
 [libraries]
@@ -56,3 +56,4 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 serializationPlugin = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
