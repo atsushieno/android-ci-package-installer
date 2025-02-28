@@ -55,6 +55,7 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
             try {
                 repoState = repoInfo.createRepository()
             } catch (ex: /*CIPackageInstallerException*/Exception) {
+                Log.e("CI-Package-Installer", ex.stackTraceToString())
                 AppModel.logger.logError("Failed to retrieve repository data: ${ex.message}", ex)
                 Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
                     navController.navigate(Routes.Home.route) { popUpTo(Routes.Home.route) }
