@@ -85,7 +85,6 @@ fun OperationLogViewer() {
 fun GitHubUserCredentialsConfigUI() {
     val context = LocalContext.current
 
-    val needsUserInfoText = "To get pre-release APKs, set GitHub username and PAT"
     val alreadyHasUserInfText = "To change GitHub account setup, tap here"
     val credentialsAreSetText = "Username and PAT are set!"
     val needsCredentialsText = "Specify username and PAT"
@@ -96,6 +95,8 @@ fun GitHubUserCredentialsConfigUI() {
 
     val hasGitHubCredentials = username.isNotEmpty() && pat.isNotEmpty()
     var toggleGitHubAccountState by remember { mutableStateOf(!hasGitHubCredentials) }
+    val needsUserInfoText = "To get pre-release APKs, set GitHub username and PAT " +
+        if (toggleGitHubAccountState) "" else "\uD83D\uDC48"
     val descriptionText = if (hasGitHubCredentials) alreadyHasUserInfText else needsUserInfoText
     var showCredentialRemovalConfirmationState by remember { mutableStateOf(false) }
 

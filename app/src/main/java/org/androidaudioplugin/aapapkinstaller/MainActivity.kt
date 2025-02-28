@@ -3,7 +3,12 @@ package org.androidaudioplugin.aapapkinstaller
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.ViewGroup
+import androidx.activity.enableEdgeToEdge
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import dev.atsushieno.cipackageinstaller.AppModel
 import dev.atsushieno.cipackageinstaller.AppModelFactory
 import dev.atsushieno.cipackageinstaller.ApplicationModel

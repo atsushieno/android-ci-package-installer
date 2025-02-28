@@ -1,13 +1,21 @@
 package dev.atsushieno.cipackageinstaller.ui.view
 
+import android.os.Build
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 
 abstract class CIPackageInstallerActivity : ComponentActivity() {
     companion object {
@@ -29,7 +37,9 @@ abstract class CIPackageInstallerActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TopLevelNavHost()
+                    Box(Modifier.safeDrawingPadding()) {
+                        TopLevelNavHost()
+                    }
                 }
             }
         }
