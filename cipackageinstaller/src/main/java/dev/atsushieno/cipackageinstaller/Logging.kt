@@ -21,4 +21,8 @@ class Logger {
         logs.add(LogEntry(message, artifact))
         Log.i(AppModel.LOG_TAG, message)
     }
+
+    fun clearLogs() {
+        logs.clear()
+    }
 }

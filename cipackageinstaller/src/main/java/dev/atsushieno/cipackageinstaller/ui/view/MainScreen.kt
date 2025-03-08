@@ -69,6 +69,9 @@ fun OperationLogViewer() {
             Text(hasSomeLogText)
         }
         if (toggleViewerState) {
+            Button(onClick = { AppModel.logger.clearLogs() }) {
+                Text("Clear logs")
+            }
             LazyColumn {
                 items(logs.size) { index ->
                     val entry = logs[index]
