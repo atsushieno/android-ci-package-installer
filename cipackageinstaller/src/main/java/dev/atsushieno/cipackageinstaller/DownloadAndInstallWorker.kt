@@ -77,7 +77,7 @@ class DownloadAndInstallWorker(context: Context, parameters: WorkerParameters)
         AppModel.logger.logInfo("completed downloading ${repo.info.appLabel}")
         val outStream = session.openWrite(file.name, 0, file.length())
         val inStream = FileInputStream(file)
-        AppModel.copyStream("on downloading ${repo.info.appLabel}", inStream, outStream)
+        AppModel.copyStream(inStream, outStream)
         session.fsync(outStream)
         outStream.close()
 

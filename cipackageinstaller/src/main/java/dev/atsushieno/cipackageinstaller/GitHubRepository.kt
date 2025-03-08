@@ -115,7 +115,7 @@ class GitHubArtifactApplicationArtifact internal constructor(
         val tmpZipFile = File.createTempFile("GHTempArtifact", ".zip")
         try {
             artifact.download { inStream ->
-                AppModel.copyStream("on downloading $artifactName", inStream, tmpZipFile)
+                AppModel.copyStream("on downloading $artifactName", inStream, tmpZipFile, artifact.sizeInBytes)
             }
             val zipFile = ZipFile(tmpZipFile)
             val entry = zipFile.entries().iterator().asSequence().firstOrNull {
@@ -127,7 +127,7 @@ class GitHubArtifactApplicationArtifact internal constructor(
 
                 Log.d(AppModel.LOG_TAG, "Downloading ${entry.name} ...")
                 val inAppStream = zipFile.getInputStream(entry)
-                AppModel.copyStream("on downloading $artifactName", inAppStream, tmpAppFile)
+                AppModel.copyStream(inAppStream, tmpAppFile)
                 if (!tmpAppFile.exists() || tmpAppFile.length() != entry.size)
                     throw CIPackageInstallerException("Artifact uncompressed size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")
                 return tmpAppFile
@@ -196,7 +196,7 @@ internal constructor(repository: GitHubRepository,
         val client = OkHttpClient()
         with(client.newCall(Request.Builder().url(asset.browserDownloadUrl.toString()).build()).execute()) {
             val stream = this.body?.byteStream() ?: throw CIPackageInstallerException("Failed to download asset for the latest release ${release.name} from ${asset.url}")
-            AppModel.copyStream("on downloading $artifactName", stream, tmpAppFile)
+            AppModel.copyStream("on downloading $artifactName", stream, tmpAppFile, body?.contentLength() ?: 0)
         }
         if (!tmpAppFile.exists() || tmpAppFile.length() != artifactSizeInBytes)
             throw CIPackageInstallerException("Release artifact size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")

@@ -62,33 +62,40 @@ abstract class ApplicationModel {
         githubApplicationStore.updateCredentials(username, pat)
     }
 
-    fun copyStream(label: String, inFS: InputStream, outFile: File) {
-        val outFS = FileOutputStream(outFile)
-        copyStream(label, inFS, outFS)
-        outFS.close()
+    fun copyStream(inFS: InputStream, outFile: File) =  copyStream("", inFS, outFile, 0)
+
+    fun copyStream(label: String, inFS: InputStream, outFile: File, copySize: Long) {
+        FileOutputStream(outFile).use { copyStream(label, inFS, it, copySize) }
     }
 
-    object MyExecutor : Executor {
-        override fun execute(command: Runnable?) {
-            // no thread constraints
-            command?.run()
-        }
-    }
-    @RequiresApi(Build.VERSION_CODES.Q)
-    class ProgressListener(private val label: String) : FileUtils.ProgressListener {
-        override fun onProgress(progress: Long) {
-            AppModel.logger.logInfo("$label (progress: $progress)")
-        }
-    }
+    fun copyStream(inFS: InputStream, outFS: OutputStream) = copyStream("", inFS, outFS, 0)
 
-    fun copyStream(label: String, inFS: InputStream, outFS: OutputStream) {
+    fun copyStream(label: String, inFS: InputStream, outFS: OutputStream, copySize: Long) {
         val bytes = ByteArray(4096)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            FileUtils.copy(inFS, outFS, null, MyExecutor, ProgressListener(label))
+            if (!label.isEmpty())
+                FileUtils.copy(inFS, outFS, null, MyExecutor, ProgressListener(label, copySize))
+            else
+                FileUtils.copy(inFS, outFS)
         } else {
             while (inFS.available() > 0) {
                 val size = inFS.read(bytes)
                 outFS.write(bytes, 0, size)
+            }
+        }
+    }
+
+    object MyExecutor : Executor {
+        // no thread constraints
+        override fun execute(command: Runnable?) { command?.run() }
+    }
+    @RequiresApi(Build.VERSION_CODES.Q)
+    class ProgressListener(private val label: String, private val size: Long) : FileUtils.ProgressListener {
+        var nextProgressReport = (size / 10).coerceAtLeast(1048576)
+        override fun onProgress(progress: Long) {
+            if (progress > nextProgressReport) {
+                AppModel.logger.logInfo("$label [${(100 * progress / size).toInt()}%: $progress / $size]")
+                nextProgressReport += size / 10
             }
         }
     }
