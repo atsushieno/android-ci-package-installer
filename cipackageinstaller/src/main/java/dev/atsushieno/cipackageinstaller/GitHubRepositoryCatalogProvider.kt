@@ -24,11 +24,7 @@ class GitHubRepositoryCatalogProvider : RepositoryCatalogProvider() {
         try {
             github = GitHubBuilder.fromEnvironment()
                 .withOAuthToken(pat.trim(), username.trim())
-                .withConnector(
-                    OkHttpGitHubConnector(
-                        OkHttpClient().newBuilder().cache(cache).build()
-                    )
-                )
+                .withConnector(CustomOkHttpGitHubConnector(OkHttpClient().newBuilder().build()))
                 .build()
         } catch (e: Exception) {
             // keep using current github connection
@@ -47,7 +43,7 @@ class GitHubRepositoryCatalogProvider : RepositoryCatalogProvider() {
         set(value) { gh = value }
 
     private fun connectGitHub() = GitHubBuilder.fromEnvironment()
-        .withConnector(OkHttpGitHubConnector(OkHttpClient().newBuilder().cache(cache).build()))
+        .withConnector(CustomOkHttpGitHubConnector(OkHttpClient().newBuilder().build()))
         .build()
 
     var githubRepositories = mutableListOf<RepositoryInformation>()
