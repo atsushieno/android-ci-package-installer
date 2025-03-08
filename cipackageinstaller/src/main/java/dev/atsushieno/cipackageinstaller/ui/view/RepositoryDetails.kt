@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
@@ -71,7 +73,7 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
         val alreadyExists =
             AppModel.findExistingPackages(context).contains(repoInfo.packageName)
         if (alreadyExists)
-            Text("(It is already installed on your system.)", fontSize = 16.sp)
+            Text("(It is already installed on your system.)", fontSize = 16.sp, color = MaterialTheme.colorScheme.tertiary)
 
         if (repo.variants.isEmpty()) {
             Text(text = "There is no available releases.")
