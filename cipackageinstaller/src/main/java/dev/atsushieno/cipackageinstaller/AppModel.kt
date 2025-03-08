@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.FileUtils
+import androidx.annotation.RequiresApi
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import androidx.work.OneTimeWorkRequestBuilder
@@ -15,6 +16,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.Executor
 
 val AppModel by lazy { AppModelFactory.create() }
 
@@ -60,16 +62,29 @@ abstract class ApplicationModel {
         githubApplicationStore.updateCredentials(username, pat)
     }
 
-    fun copyStream(inFS: InputStream, outFile: File) {
+    fun copyStream(label: String, inFS: InputStream, outFile: File) {
         val outFS = FileOutputStream(outFile)
-        copyStream(inFS, outFS)
+        copyStream(label, inFS, outFS)
         outFS.close()
     }
 
-    fun copyStream(inFS: InputStream, outFS: OutputStream) {
+    object MyExecutor : Executor {
+        override fun execute(command: Runnable?) {
+            // no thread constraints
+            command?.run()
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.Q)
+    class ProgressListener(private val label: String) : FileUtils.ProgressListener {
+        override fun onProgress(progress: Long) {
+            AppModel.logger.logInfo("$label (progress: $progress)")
+        }
+    }
+
+    fun copyStream(label: String, inFS: InputStream, outFS: OutputStream) {
         val bytes = ByteArray(4096)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            FileUtils.copy(inFS, outFS)
+            FileUtils.copy(inFS, outFS, null, MyExecutor, ProgressListener(label))
         } else {
             while (inFS.available() > 0) {
                 val size = inFS.read(bytes)

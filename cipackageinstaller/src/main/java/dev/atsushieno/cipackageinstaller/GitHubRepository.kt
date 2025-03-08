@@ -94,6 +94,7 @@ class GitHubArtifactApplicationArtifact internal constructor(
             val artifact = workflowRun.listArtifacts().toArray().first()
             GitHubArtifactApplicationArtifact(workflowRun, artifact, repository)
         } catch (ex: CIPackageInstallerException) {
+            AppModel.logger.logError(ex.message ?: "CIPackageInstallerException: $ex", ex)
             null
         }
     }
@@ -114,23 +115,30 @@ class GitHubArtifactApplicationArtifact internal constructor(
         val tmpZipFile = File.createTempFile("GHTempArtifact", ".zip")
         try {
             artifact.download { inStream ->
-                AppModel.copyStream(inStream, tmpZipFile)
+                AppModel.copyStream("on downloading $artifactName", inStream, tmpZipFile)
             }
             val zipFile = ZipFile(tmpZipFile)
             val entry = zipFile.entries().iterator().asSequence().firstOrNull {
                 it.name.endsWith(".apk") || it.name.endsWith(".aab")
             }
             if (entry != null) {
-                val tmpAppFile = File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk or aab
+                val tmpAppFile =
+                    File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk or aab
 
                 Log.d(AppModel.LOG_TAG, "Downloading ${entry.name} ...")
                 val inAppStream = zipFile.getInputStream(entry)
-                AppModel.copyStream(inAppStream, tmpAppFile)
+                AppModel.copyStream("on downloading $artifactName", inAppStream, tmpAppFile)
                 if (!tmpAppFile.exists() || tmpAppFile.length() != entry.size)
                     throw CIPackageInstallerException("Artifact uncompressed size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")
                 return tmpAppFile
             } else
                 throw CIPackageInstallerException("... app entry in the artifact not found at run $artifactName for ${repository.info.name}")
+        } catch (ex: OutOfMemoryError) {
+            AppModel.logger.logError("Artifact download failed: OutOfMemoryError. It likely means the GitHub API for Java stored more bytes than OOM killer limitation: $ex")
+            throw ex
+        } catch (ex: Exception) {
+            AppModel.logger.logError("Artifact download failed: $ex", ex)
+            throw ex
         } finally {
             tmpZipFile.delete()
         }
@@ -188,7 +196,7 @@ internal constructor(repository: GitHubRepository,
         val client = OkHttpClient()
         with(client.newCall(Request.Builder().url(asset.browserDownloadUrl.toString()).build()).execute()) {
             val stream = this.body?.byteStream() ?: throw CIPackageInstallerException("Failed to download asset for the latest release ${release.name} from ${asset.url}")
-            AppModel.copyStream(stream, tmpAppFile)
+            AppModel.copyStream("on downloading $artifactName", stream, tmpAppFile)
         }
         if (!tmpAppFile.exists() || tmpAppFile.length() != artifactSizeInBytes)
             throw CIPackageInstallerException("Release artifact size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")

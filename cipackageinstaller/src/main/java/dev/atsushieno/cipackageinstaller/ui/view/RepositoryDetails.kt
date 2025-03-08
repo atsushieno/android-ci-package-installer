@@ -55,7 +55,6 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
             try {
                 repoState = repoInfo.createRepository()
             } catch (ex: /*CIPackageInstallerException*/Exception) {
-                Log.e("CI-Package-Installer", ex.stackTraceToString())
                 AppModel.logger.logError("Failed to retrieve repository data: ${ex.message}", ex)
                 Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
                     navController.navigate(Routes.Home.route) { popUpTo(Routes.Home.route) }
@@ -107,7 +106,6 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
                             AppModel.performUninstallPackage(context, repo)
                         } catch (ex: CIPackageInstallerException) {
                             AppModel.logger.logError("Failed to retrieve repository data: ${ex.message}", ex)
-                            Log.e(AppModel.LOG_TAG, "Failed to retrieve repository data: $ex")
                             Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
                                 Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
                             }

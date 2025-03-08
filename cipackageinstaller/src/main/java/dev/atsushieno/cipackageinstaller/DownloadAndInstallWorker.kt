@@ -36,7 +36,7 @@ class DownloadAndInstallWorker(context: Context, parameters: WorkerParameters)
             downloadAndInstall()
             return Result.success()
         } catch (ex: Exception) {
-            Log.e(LOG_TAG, "DownloadAndInstallWorker failed: $ex")
+            AppModel.logger.logError("DownloadAndInstallWorker failed", ex)
             return Result.failure()
         }
     }
@@ -70,24 +70,24 @@ class DownloadAndInstallWorker(context: Context, parameters: WorkerParameters)
             session.requestUserPreapproval(preapproval, preapprovalPendingIntent.intentSender)
         }
 
-        Log.d(LOG_TAG, "start downloading ${repo.info.appLabel} ...")
+        AppModel.logger.logInfo("started downloading ${repo.info.appLabel} ...")
 
         setForegroundAsync(DownloadStatusNotificationManager.createForegroundInfo(context))
         val file = download.downloadApp()
-        Log.d(LOG_TAG, "completed downloading ${repo.info.appLabel}")
+        AppModel.logger.logInfo("completed downloading ${repo.info.appLabel}")
         val outStream = session.openWrite(file.name, 0, file.length())
         val inStream = FileInputStream(file)
-        AppModel.copyStream(inStream, outStream)
+        AppModel.copyStream("on downloading ${repo.info.appLabel}", inStream, outStream)
         session.fsync(outStream)
         outStream.close()
 
         val intent = Intent(context, PackageInstallerReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQUEST_CODE,
             intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
-        Log.d(LOG_TAG, "ready to install ${repo.info.appLabel} ...")
+        AppModel.logger.logInfo("ready to install ${repo.info.appLabel} ...")
         session.commit(pendingIntent.intentSender)
         session.close()
 
-        Log.i(LOG_TAG, "InstallWorker completed for ${repo.info.appLabel}")
+        AppModel.logger.logInfo("InstallWorker completed for ${repo.info.appLabel}")
     }
 }
