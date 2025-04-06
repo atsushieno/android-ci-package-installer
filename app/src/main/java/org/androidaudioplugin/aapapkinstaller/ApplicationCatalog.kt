@@ -62,7 +62,7 @@ object ApplicationCatalog {
             GitHubRepositoryInformation("atsushieno", "aap-juce-ddsp",
                 "org.androidaudioplugin.ports.juce.ddsp_vst", "AAP DDSP-VST"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-surge",
-                "org.androidaudioplugin.ports.juce.surge", "AAP Surge-XT"),
+                "org.androidaudioplugin.ports.juce.surge_xt", "AAP Surge-XT"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-audible-planets",
                 "org.androidaudioplugin.ports.juce.audibleplanets", "AAP Audible Planets"),
         ))
