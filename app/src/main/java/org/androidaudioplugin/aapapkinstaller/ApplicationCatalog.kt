@@ -8,6 +8,7 @@ object ApplicationCatalog {
     @Suppress("SpellCheckingInspection")
     fun setupApkList() {
         val store = AppModel.githubApplicationStore
+        store.githubRepositories.clear()
         store.githubRepositories.addAll(listOf(
             GitHubRepositoryInformation("atsushieno", "android-ci-package-installer",
                 "org.androidaudioplugin.aapapkinstaller", "AAP APK Installer"),
