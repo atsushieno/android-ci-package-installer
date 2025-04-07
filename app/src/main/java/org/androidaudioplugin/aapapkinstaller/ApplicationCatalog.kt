@@ -12,7 +12,7 @@ object ApplicationCatalog {
             GitHubRepositoryInformation("atsushieno", "android-ci-package-installer",
                 "org.androidaudioplugin.aapapkinstaller", "AAP APK Installer"),
             GitHubRepositoryInformation("atsushieno", "resident-midi-keyboard",
-                "org.androidaudioplugin.resident_midi_keyboard", "Resident MIDI Keyboard"),
+                "org.androidaudioplugin.resident_midi_keyboard", "MIDI2 Keyboard"),
             GitHubRepositoryInformation("atsushieno", "aap-lv2-mda",
                 "org.androidaudioplugin.ports.lv2.mda_lv2", "AAP MDA-LV2"),
             GitHubRepositoryInformation("atsushieno", "aap-lv2-sfizz",
