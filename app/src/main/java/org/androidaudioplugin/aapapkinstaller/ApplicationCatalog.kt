@@ -28,7 +28,7 @@ object ApplicationCatalog {
                 "org.androidaudioplugin.ports.lv2.string_machine", "AAP String Machine"),
             GitHubRepositoryInformation("atsushieno", "aap-lv2-aida-x",
                 "org.androidaudioplugin.ports.lv2.aida_x", "AAP AIDA-X"),
-            GitHubRepositoryInformation("atsushieno", "aap-juce-plugin-host",
+            GitHubRepositoryInformation("atsushieno", "aap-juce-plugin-host-cmake",
                 "org.androidaudioplugin.ports.juce.audiopluginhost", "AAP AudioPluginHost"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-simple-host",
                 "org.androidaudioplugin.samples.simple_plugin_host", "AAP SimpleHost"),
