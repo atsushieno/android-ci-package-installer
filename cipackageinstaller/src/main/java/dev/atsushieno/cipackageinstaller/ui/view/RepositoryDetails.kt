@@ -79,6 +79,31 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
             Text(text = "There is no available releases.")
             Text("(Note that there might be build \"artifact\" - they are available only to authenticated users via the GitHub API.)")
         }
+
+        if (!AppModel.isExistingPackageListReliable() || alreadyExists) {
+            Button(onClick = {
+                Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                    Toast.makeText(
+                        context,
+                        "Uninstalling ${repoInfo.name} ...",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
+                    try {
+                        AppModel.performUninstallPackage(context, repo)
+                    } catch (ex: CIPackageInstallerException) {
+                        AppModel.logger.logError("Failed to retrieve repository data: ${ex.message}", ex)
+                        Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
+                            Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }) {
+                Text("Uninstall")
+            }
+        }
+
         repo.variants.forEach { variant ->
             Text(variant.typeName, fontSize = 18.sp, textDecoration = TextDecoration.Underline)
             Text(variant.versionId)
@@ -93,29 +118,6 @@ fun RepositoryDetailsContent(navController: NavController, index: Int) {
                 }
             }) {
                 Text(if (alreadyExists) "Download and Update" else "Download and Install")
-            }
-            if (!AppModel.isExistingPackageListReliable() || alreadyExists) {
-                Button(onClick = {
-                    Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                        Toast.makeText(
-                            context,
-                            "Uninstalling ${repoInfo.name} ...",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                    Dispatchers.IO.dispatch(coroutineScope.coroutineContext) {
-                        try {
-                            AppModel.performUninstallPackage(context, repo)
-                        } catch (ex: CIPackageInstallerException) {
-                            AppModel.logger.logError("Failed to retrieve repository data: ${ex.message}", ex)
-                            Dispatchers.Main.dispatch(coroutineScope.coroutineContext) {
-                                Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-                            }
-                        }
-                    }
-                }) {
-                    Text("Uninstall")
-                }
             }
         }
     }

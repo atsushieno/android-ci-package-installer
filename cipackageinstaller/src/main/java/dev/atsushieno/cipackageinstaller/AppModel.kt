@@ -4,6 +4,8 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageInstaller
+import android.net.Uri
 import android.os.Build
 import android.os.FileUtils
 import androidx.annotation.RequiresApi
@@ -112,11 +114,16 @@ abstract class ApplicationModel {
     }
 
     fun performUninstallPackage(context: Context, repo: Repository) {
+        /*
         val installer = context.packageManager.packageInstaller
-        val intent = Intent(context, PackageInstallerReceiver::class.java)
+        val intent = Intent(context, UninstallationReceiver::class.java)
+        intent.putExtra(PackageInstaller.EXTRA_PACKAGE_NAME, repo.info.packageName)
         val pendingIntent = PendingIntent.getBroadcast(context, PENDING_INTENT_REQUEST_CODE,
-            intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+            intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT)
         installer.uninstall(repo.info.packageName, pendingIntent.intentSender)
+         */
+        val intent = Intent(Intent.ACTION_DELETE, Uri.fromParts("package", repo.info.packageName, null))
+        context.startActivity(intent)
     }
 
     // provide access to GitHub specific properties such as `guthubRepositories`

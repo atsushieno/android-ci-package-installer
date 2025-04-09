@@ -7,7 +7,7 @@ import android.content.pm.PackageInstaller
 import android.util.Log
 import androidx.annotation.RequiresApi
 
-class PreapprovalReceiver : BroadcastReceiver() {
+class UninstallationReceiver : BroadcastReceiver() {
     @RequiresApi(34)
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, -37564)) {
@@ -17,12 +17,11 @@ class PreapprovalReceiver : BroadcastReceiver() {
                 context.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
             PackageInstaller.STATUS_SUCCESS -> {
-                Log.d(AppModel.LOG_TAG, "Preapproval succeeded")
+                Log.d(AppModel.LOG_TAG, "Successfully uninstalled")
             }
             else -> {
                 val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                val details = intent.getParcelableExtra(PackageInstaller.EXTRA_PRE_APPROVAL, PackageInstaller.PreapprovalDetails::class.java)
-                AppModel.logger.logError("Preapproval failed: $message (${details?.packageName})")
+                AppModel.logger.logError("Uninstallation failed: $message")
             }
         }
     }
