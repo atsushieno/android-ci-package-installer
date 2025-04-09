@@ -31,7 +31,7 @@ object ApplicationCatalog {
             GitHubRepositoryInformation("atsushieno", "aap-juce-plugin-host-cmake",
                 "org.androidaudioplugin.ports.juce.audiopluginhost", "AAP AudioPluginHost"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-simple-host",
-                "org.androidaudioplugin.samples.simple_plugin_host", "AAP SimpleHost"),
+                "org.androidaudioplugin.samples.juce.simple_plugin_host", "AAP SimpleHost"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-helio",
                 "org.androidaudioplugin.ports.juce.helio", "AAP Helio"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-ob-x-ae",
