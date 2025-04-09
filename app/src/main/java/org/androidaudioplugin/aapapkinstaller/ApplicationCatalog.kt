@@ -45,7 +45,7 @@ object ApplicationCatalog {
             GitHubRepositoryInformation("atsushieno", "aap-juce-odin2",
                 "org.androidaudioplugin.ports.juce.odin2", "AAP Odin2"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-vital",
-                "org.androidaudioplugin.ports.juce.vital", "AAP Vitaloid"),
+                "org.androidaudioplugin.ports.juce.vitaloid", "AAP Vitaloid"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-os251",
                 "org.androidaudioplugin.ports.juce.os251", "AAP OS-251"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-witte-eq",
