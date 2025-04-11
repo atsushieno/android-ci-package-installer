@@ -118,9 +118,7 @@ class GitHubArtifactApplicationArtifact internal constructor(
                 AppModel.copyStream("on downloading $artifactName", inStream, tmpZipFile, artifact.sizeInBytes)
             }
             val zipFile = ZipFile(tmpZipFile)
-            val entry = zipFile.entries().iterator().asSequence().firstOrNull {
-                it.name.endsWith(".apk") || it.name.endsWith(".aab")
-            }
+            val entry = zipFile.entries().iterator().asSequence().firstOrNull { it.name.endsWith(".apk") }
             if (entry != null) {
                 val tmpAppFile =
                     File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk or aab
