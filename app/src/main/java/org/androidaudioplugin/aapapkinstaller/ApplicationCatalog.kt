@@ -49,7 +49,7 @@ object ApplicationCatalog {
             GitHubRepositoryInformation("atsushieno", "aap-juce-os251",
                 "org.androidaudioplugin.ports.juce.os251", "AAP OS-251"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-witte-eq",
-                "org.androidaudioplugin.ports.juce.witte_ew", "AAP witte/Eq"),
+                "org.androidaudioplugin.ports.juce.witte_eq", "AAP witte_Eq"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-simple-reverb",
                 "org.androidaudioplugin.ports.juce.simple_reverb", "AAP SimpleReverb"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-chow-phaser",
