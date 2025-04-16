@@ -66,6 +66,8 @@ object ApplicationCatalog {
                 "org.androidaudioplugin.ports.juce.surge_xt", "AAP Surge-XT"),
             GitHubRepositoryInformation("atsushieno", "aap-juce-audible-planets",
                 "org.androidaudioplugin.ports.juce.audibleplanets", "AAP AudiblePlanets"),
+            GitHubRepositoryInformation("atsushieno", "aap-juce-vaporizer2",
+                "org.androidaudioplugin.ports.juce.vaporizer2", "AAP Vaporizer2"),
             GitHubRepositoryInformation("atsushieno", "aap-airwindows",
                 "org.androidaudioplugin.ports.airwindows", "AAP Airwindows"),
         ))
