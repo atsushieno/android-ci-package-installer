@@ -8,8 +8,10 @@ import android.util.Log
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.apache.commons.io.FileUtils
 import org.kohsuke.github.GHArtifact
 import org.kohsuke.github.GHAsset
 import org.kohsuke.github.GHEvent
@@ -17,6 +19,7 @@ import org.kohsuke.github.GHRelease
 import org.kohsuke.github.GHWorkflowRun
 import java.io.File
 import java.util.zip.ZipFile
+import androidx.core.net.toUri
 
 class GitHubRepositoryInformation(
     val account: String,
@@ -114,16 +117,16 @@ class GitHubArtifactApplicationArtifact internal constructor(
     override fun downloadApp(): File {
         val tmpZipFile = File.createTempFile("GHTempArtifact", ".zip")
         try {
+            Log.d(AppModel.LOG_TAG, "Downloading ${repository.info.name} $artifactName ...")
             artifact.download { inStream ->
-                AppModel.copyStream("on downloading $artifactName", inStream, tmpZipFile, artifact.sizeInBytes)
+                AppModel.copyStream(DownloadStatus("${repository.info.name} $artifactName"), inStream, tmpZipFile, artifact.sizeInBytes)
             }
             val zipFile = ZipFile(tmpZipFile)
             val entry = zipFile.entries().iterator().asSequence().firstOrNull { it.name.endsWith(".apk") }
             if (entry != null) {
                 val tmpAppFile =
-                    File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk or aab
+                    File.createTempFile("GHTempApp", "." + File(entry.name).extension) // apk
 
-                Log.d(AppModel.LOG_TAG, "Downloading ${entry.name} ...")
                 val inAppStream = zipFile.getInputStream(entry)
                 AppModel.copyStream(inAppStream, tmpAppFile)
                 if (!tmpAppFile.exists() || tmpAppFile.length() != entry.size)
@@ -190,11 +193,11 @@ internal constructor(repository: GitHubRepository,
         get() = asset.size
 
     override fun downloadApp(): File {
-        val tmpAppFile = File.createTempFile("GHTempArtifact", "." + File(Uri.parse(asset.browserDownloadUrl).path!!).extension) // .apk or .aab
+        val tmpAppFile = File.createTempFile("GHTempArtifact", "." + File(asset.browserDownloadUrl.toUri().path!!).extension) // .apk
         val client = OkHttpClient()
-        with(client.newCall(Request.Builder().url(asset.browserDownloadUrl.toString()).build()).execute()) {
-            val stream = this.body?.byteStream() ?: throw CIPackageInstallerException("Failed to download asset for the latest release ${release.name} from ${asset.url}")
-            AppModel.copyStream("on downloading $artifactName", stream, tmpAppFile, body?.contentLength() ?: 0)
+        client.newCall(Request.Builder().url(asset.browserDownloadUrl.toString()).build()).execute().also {
+            val stream = it.body?.byteStream() ?: throw CIPackageInstallerException("Failed to download asset for the latest release ${release.name} from ${asset.url}")
+            AppModel.copyStream(DownloadStatus("${repository.info.name} $artifactName"), stream, tmpAppFile, it.body?.contentLength()!!)
         }
         if (!tmpAppFile.exists() || tmpAppFile.length() != artifactSizeInBytes)
             throw CIPackageInstallerException("Release artifact size mismatch: expected ${artifactSizeInBytes}, got ${tmpAppFile.length()}")

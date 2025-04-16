@@ -24,15 +24,13 @@ class GitHubRepositoryCatalogProvider : RepositoryCatalogProvider() {
         try {
             github = GitHubBuilder.fromEnvironment()
                 .withOAuthToken(pat.trim(), username.trim())
-                .withConnector(CustomOkHttpGitHubConnector(OkHttpClient().newBuilder().build()))
+                .withConnector(OkHttpGitHubConnector(OkHttpClient().newBuilder().build()))
                 .build()
         } catch (e: Exception) {
             // keep using current github connection
             AppModel.logger.logError("GitHub authentication failed: ${e.message}", e)
         }
     }
-
-    private val cache = Cache(FileUtils.getTempDirectory(), (100 * 1024 * 1024).toLong()) // 100MB cache
 
     private var gh: GitHub? = null
     var github: GitHub
@@ -43,7 +41,7 @@ class GitHubRepositoryCatalogProvider : RepositoryCatalogProvider() {
         set(value) { gh = value }
 
     private fun connectGitHub() = GitHubBuilder.fromEnvironment()
-        .withConnector(CustomOkHttpGitHubConnector(OkHttpClient().newBuilder().build()))
+        .withConnector(OkHttpGitHubConnector(OkHttpClient().newBuilder().build()))
         .build()
 
     var githubRepositories = mutableListOf<RepositoryInformation>()

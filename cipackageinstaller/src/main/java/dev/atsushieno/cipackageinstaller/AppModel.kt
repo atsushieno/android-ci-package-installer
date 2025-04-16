@@ -9,6 +9,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.FileUtils
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import androidx.work.OneTimeWorkRequestBuilder
@@ -64,21 +66,29 @@ abstract class ApplicationModel {
         githubApplicationStore.updateCredentials(username, pat)
     }
 
-    fun copyStream(inFS: InputStream, outFile: File) =  copyStream("", inFS, outFile, 0)
+    fun copyStream(inFS: InputStream, outFile: File) =
+        FileOutputStream(outFile).use { copyStream(inFS, it) }
 
-    fun copyStream(label: String, inFS: InputStream, outFile: File, copySize: Long) {
-        FileOutputStream(outFile).use { copyStream(label, inFS, it, copySize) }
+    fun copyStream(status: DownloadStatus, inFS: InputStream, outFile: File, copySize: Long) {
+        FileOutputStream(outFile).use { copyStream(status, inFS, it, copySize) }
     }
 
-    fun copyStream(inFS: InputStream, outFS: OutputStream) = copyStream("", inFS, outFS, 0)
-
-    fun copyStream(label: String, inFS: InputStream, outFS: OutputStream, copySize: Long) {
+    fun copyStream(inFS: InputStream, outFS: OutputStream) {
         val bytes = ByteArray(4096)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (!label.isEmpty())
-                FileUtils.copy(inFS, outFS, null, MyExecutor, ProgressListener(label, copySize))
-            else
-                FileUtils.copy(inFS, outFS)
+            FileUtils.copy(inFS, outFS)
+        } else {
+            while (inFS.available() > 0) {
+                val size = inFS.read(bytes)
+                outFS.write(bytes, 0, size)
+            }
+        }
+    }
+
+    fun copyStream(status: DownloadStatus, inFS: InputStream, outFS: OutputStream, copySize: Long) {
+        val bytes = ByteArray(4096)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            FileUtils.copy(inFS, outFS, null, MyExecutor, ProgressListener(status, copySize))
         } else {
             while (inFS.available() > 0) {
                 val size = inFS.read(bytes)
@@ -92,13 +102,19 @@ abstract class ApplicationModel {
         override fun execute(command: Runnable?) { command?.run() }
     }
     @RequiresApi(Build.VERSION_CODES.Q)
-    class ProgressListener(private val label: String, private val size: Long) : FileUtils.ProgressListener {
+    class ProgressListener(private val status: DownloadStatus, private val size: Long) : FileUtils.ProgressListener {
         var nextProgressReport = (size / 10).coerceAtLeast(1048576)
+
         override fun onProgress(progress: Long) {
+            status.progress.value = progress / size.toDouble()
             if (progress > nextProgressReport) {
-                AppModel.logger.logInfo("$label [${(100 * progress / size).toInt()}%: $progress / $size]")
+                AppModel.logger.logInfo("${status.label} [${(100 * progress / size).toInt()}%: $progress / $size]")
                 nextProgressReport += size / 10
             }
+        }
+
+        init {
+            AppModel.downloadProgresses.add(status)
         }
     }
 
@@ -138,6 +154,8 @@ abstract class ApplicationModel {
     var isExistingPackageListReliable: () -> Boolean = { false }
 
     val logger = Logger()
+
+    val downloadProgresses = mutableStateListOf<DownloadStatus>()
 }
 
 object AppModelFactory {

@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -35,6 +37,7 @@ fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
     Column {
         GitHubUserCredentialsConfigUI()
         PermissionRequester()
+        ProgressMonitor()
         OperationLogViewer()
         val context = LocalContext.current
         LazyColumn(content = {
@@ -65,6 +68,38 @@ fun MainScreen(onItemClicked: (repo: Int) -> Unit) {
 }
 
 @Composable
+fun ProgressMonitor() {
+    val hasSomeDownloadProgresses = "Download operations in progress, tap to see the details"
+
+    val downloads = remember { AppModel.downloadProgresses }
+
+    if (downloads.isEmpty())
+        return
+
+    var toggleViewerState by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.border(2.dp, color = MaterialTheme.colorScheme.outline)) {
+        Row(modifier = Modifier
+            .padding(8.dp)
+            .clickable { toggleViewerState = !toggleViewerState }) {
+            Text(hasSomeDownloadProgresses)
+        }
+        if (toggleViewerState) {
+            Button(onClick = { AppModel.downloadProgresses.clear() }) {
+                Text("Clear monitors")
+            }
+            LazyColumn {
+                items(downloads.size) { index ->
+                    val entry = downloads[index]
+                    val progress by remember { entry.progress }
+                    Text(entry.label, fontSize = 12.sp)
+                    Slider(value = progress.toFloat(), onValueChange = {}, enabled = false, valueRange = 0.0f..1.0f)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun OperationLogViewer() {
     val hasSomeLogText = "There are some operation logs, tap to view"
 
@@ -76,7 +111,7 @@ fun OperationLogViewer() {
     var toggleViewerState by remember { mutableStateOf(false) }
     Column(modifier = Modifier.border(2.dp, color = MaterialTheme.colorScheme.outline)) {
         Row(modifier = Modifier
-            .padding(4.dp)
+            .padding(8.dp)
             .clickable { toggleViewerState = !toggleViewerState }) {
             Text(hasSomeLogText)
         }
@@ -117,7 +152,7 @@ fun GitHubUserCredentialsConfigUI() {
 
     Column(modifier = Modifier.border(2.dp, color = MaterialTheme.colorScheme.outline)) {
         Row(modifier = Modifier
-            .padding(4.dp)
+            .padding(8.dp)
             .clickable { toggleGitHubAccountState = !toggleGitHubAccountState }) {
             Text(descriptionText)
         }
